@@ -1,0 +1,128 @@
+import baseStyles from "../LoginPage/styles";
+
+/**
+ * Register page reuses every token from the login page (card, inputs,
+ * buttons, boat area, etc.) and only adds the few things unique to
+ * the sign-up form: the terms checkbox row.
+ */
+const styles = {
+  ...baseStyles,
+
+  checkboxRow: {
+    display: "flex",
+    alignItems: "flex-start",
+    gap: 10,
+    marginTop: -6,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    flexShrink: 0,
+    marginTop: 2,
+    accentColor: "#3ee04e",
+    cursor: "pointer",
+  },
+  checkboxLabel: {
+    fontSize: 14.5,
+    color: "#5C5346",
+    lineHeight: 1.5,
+    cursor: "pointer",
+  },
+  termsLink: {
+    color: "#3E6BE0",
+    textDecoration: "none",
+    fontWeight: 700,
+  },
+
+  passwordChecklist: {
+    listStyle: "none",
+    margin: "8px 0 0",
+    padding: 0,
+    display: "flex",
+    flexDirection: "column",
+    gap: 3,
+  },
+  passwordRuleItem: {
+    fontSize: 13,
+    fontWeight: 600,
+    transition: "color 0.15s ease",
+  },
+
+  orgTypeRow: {
+    display: "flex",
+    gap: 10,
+    marginTop: 6,
+  },
+  orgTypeBtn: {
+    flex: 1,
+    padding: "10px 12px",
+    borderRadius: 10,
+    border: "2px solid #D8CFBF",
+    background: "#FFFDF8",
+    fontSize: 14,
+    fontWeight: 600,
+    color: "#4A4436",
+    cursor: "pointer",
+    transition: "all 0.15s ease",
+  },
+  orgTypeBtnActive: {
+    borderColor: "#3E6BE0",
+    background: "#EAF0FF",
+    color: "#3E6BE0",
+  },
+  suggestionList: {
+    listStyle: "none",
+    margin: "6px 0 0",
+    padding: 6,
+    position: "absolute",
+    top: "100%",
+    left: 0,
+    right: 0,
+    background: "#FFFDF8",
+    border: "2px solid #D8CFBF",
+    borderRadius: 10,
+    maxHeight: 220,
+    overflowY: "auto",
+    zIndex: 20,
+    boxShadow: "0 6px 16px rgba(0,0,0,0.08)",
+  },
+  suggestionItem: {
+    padding: "8px 10px",
+    borderRadius: 8,
+    fontSize: 14,
+    color: "#221D17",
+    cursor: "pointer",
+    display: "flex",
+    justifyContent: "space-between",
+    gap: 10,
+  },
+  suggestionMeta: {
+    fontSize: 12,
+    color: "#8A8071",
+    whiteSpace: "nowrap",
+  },
+  suggestionLoading: {
+    padding: "8px 10px",
+    fontSize: 13,
+    color: "#8A8071",
+  },
+
+  atPrefix: {
+    position: "absolute",
+    left: 14,
+    top: "50%",
+    transform: "translateY(-50%)",
+    color: "#8A8071",
+    fontWeight: 700,
+    fontSize: 15,
+    pointerEvents: "none",
+  },
+  usernameHint: {
+    display: "block",
+    fontSize: 13,
+    fontWeight: 600,
+    marginTop: 5,
+  },
+};
+
+export default styles;
