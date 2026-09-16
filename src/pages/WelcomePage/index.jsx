@@ -1,118 +1,61 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import GlobalStyles from "../../components/common/GlobalStyles";
-import AssetPlaceholder from "../../components/mockups/AssetPlaceholder";
+import HeroIllustration from "../../components/mockups/HeroIllustration";
+import shellStyles from "../../components/common/appShellStyles";
 import styles from "./styles";
 
-const NAV_ITEMS = ["Dashboard", "Task", "Chat", "Calendar"];
+const NAV_ITEMS = [
+  { label: "Home", path: "/home" },
+  { label: "Dashboard", path: "/dashboard" },
+  { label: "Task", path: "/task" },
+  { label: "Chat", path: "/chat" },
+  { label: "Calendar", path: "/calendar" },
+];
 
-/**
- * WelcomePage
- * "Welcome Aboard!" home screen, based on the Figma reference.
- * Full-bleed, frameless long page — no boxed/rounded card, the sky/ocean
- * gradient runs edge to edge behind the header, nav, and hero.
- *
- * The sailboat, birds, mascot icon, and wooden signpost are all dashed
- * <AssetPlaceholder /> slots reserved at roughly the right size/position
- * so the final artwork + animations can be dropped straight in later
- * without touching the layout.
- */
+function getStoredUser() {
+  try {
+    const raw = localStorage.getItem("crew_user");
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
 export default function WelcomePage() {
-  const [activeTab, setActiveTab] = useState("Dashboard");
+  const navigate = useNavigate();
+  const [user] = useState(getStoredUser);
+
+  const displayName = user?.name || "เพื่อนสมาชิก";
+  const initial = displayName.trim().charAt(0).toUpperCase() || "?";
 
   return (
     <div style={styles.page}>
       <GlobalStyles />
 
-      {/* HEADER: mascot + title */}
-      <div style={styles.header}>
-        <div style={styles.mascotWrap} title="ใส่ไอคอน mascot ตรงนี้ทีหลัง">
-          🙂
-        </div>
-        <h1 style={styles.title}>Welcome Aboard!</h1>
-      </div>
+      <section style={styles.hero}>
+        <HeroIllustration style={styles.heroSvg} />
 
-      {/* SEGMENTED NAV */}
-      <div style={styles.navWrap}>
-        <nav style={styles.navBar}>
-          {NAV_ITEMS.map((item) => {
-            const isActive = item === activeTab;
-            return (
+        <div style={styles.homeHeader}>
+          <div style={styles.homeGreetingRow}>
+            <span style={shellStyles.avatar}>{initial}</span>
+            <h1 style={styles.heroGreeting}>ยินดีต้อนรับ, {displayName} 👋</h1>
+          </div>
+
+          <nav style={shellStyles.pillNav}>
+            {NAV_ITEMS.map(({ label, path }) => (
               <button
-                key={item}
+                key={label}
                 type="button"
-                onClick={() => setActiveTab(item)}
-                style={{
-                  ...styles.navItem,
-                  ...(isActive ? styles.navItemActive : {}),
-                }}
+                onClick={() => navigate(path)}
+                style={shellStyles.pillNavItem}
               >
-                {item}
+                {label}
               </button>
-            );
-          })}
-        </nav>
-      </div>
-
-      {/* HERO: long sky + ocean scene */}
-      <div style={styles.hero}>
-        {/* bird placeholders — swap for a flock illustration / lottie animation later */}
-        <AssetPlaceholder
-          label="นก"
-          width={110}
-          height={60}
-          style={{ position: "absolute", top: "6%", left: "5%" }}
-        />
-        <AssetPlaceholder
-          label="นก"
-          width={90}
-          height={50}
-          style={{ position: "absolute", top: "3%", right: "22%" }}
-        />
-        <AssetPlaceholder
-          label="นก"
-          width={80}
-          height={46}
-          style={{ position: "absolute", top: "16%", left: "38%" }}
-        />
-
-        {/* wooden signpost placeholder */}
-        <AssetPlaceholder
-          label="ป้ายบอกทาง"
-          hint="เช่น Bells Beach, Trestles"
-          width={110}
-          height={260}
-          style={{ position: "absolute", right: "4%", bottom: "4%" }}
-        />
-
-        {/* sailboat placeholder — swap for the boat illustration / animation later */}
-        <AssetPlaceholder
-          label="เรือใบ"
-          hint="แนะนำสัดส่วน 4:3"
-          width={240}
-          height={170}
-          style={{
-            position: "absolute",
-            left: "50%",
-            bottom: "10%",
-            transform: "translateX(-50%)",
-          }}
-        />
-
-        {/* subtle wave crest between sky and water */}
-        <svg
-          style={styles.oceanWaveSvg}
-          viewBox="0 0 430 30"
-          preserveAspectRatio="none"
-        >
-          <path
-            d="M0 18 Q35 4 72 18 T144 18 T216 18 T288 18 T360 18 T430 18"
-            stroke="#FFFDF8"
-            strokeWidth="2"
-            strokeOpacity="0.35"
-            fill="none"
-          />
-        </svg>
-      </div>
+            ))}
+          </nav>
+        </div>
+      </section>
     </div>
   );
 }

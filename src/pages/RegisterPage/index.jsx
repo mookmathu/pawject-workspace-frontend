@@ -7,7 +7,7 @@ import styles from "./styles";
 import seenIcon from "../../assets/images/seen.png";
 import closeEyeIcon from "../../assets/images/close-eye.png";
 import THAI_UNIVERSITIES from "../../data/thaiUniversities";
-import { registerUser, checkUsernameAvailable } from "../../lib/api";
+import { registerUser, checkUsernameAvailable, getOAuthUrl } from "../../lib/api";
 
 /**
  * RegisterPage
@@ -165,7 +165,7 @@ export default function RegisterPage() {
 
         setSubmitting(true);
         try {
-            const { token, user } = await registerUser({
+            await registerUser({
                 name,
                 username,
                 email,
@@ -174,11 +174,7 @@ export default function RegisterPage() {
                 orgName,
             });
 
-            // Keep the logged-in session for this browser tab/window.
-            localStorage.setItem("crew_token", token);
-            localStorage.setItem("crew_user", JSON.stringify(user));
-
-            navigate("/welcome");
+            navigate("/verify-otp", { state: { email } });
         } catch (err) {
             setErrors((prev) => ({ ...prev, form: err.message }));
         } finally {
@@ -187,17 +183,17 @@ export default function RegisterPage() {
     }
 
     return (
-        <div style={styles.page}>
+        <div style={styles.page} className="auth-page">
             <GlobalStyles />
 
             {/* LEFT: floating register card */}
-            <div style={styles.card} className="card-clean">
+            <div style={styles.card} className="card-clean auth-card">
                 <div style={styles.brandRow}>
                     <span style={styles.brandDot} />
                     <span style={styles.brandText}>Crew Space</span>
                 </div>
 
-                <h1 style={styles.heading}>สมัครสมาชิก</h1>
+                <h1 style={styles.heading} className="auth-heading">สมัครสมาชิก</h1>
                 <p style={styles.subheading}>สร้างบัญชีใหม่เพื่อเริ่มทำงานร่วมกับทีมของคุณ</p>
 
                 <form
@@ -431,13 +427,28 @@ export default function RegisterPage() {
                     </div>
 
                     <div style={{ display: "flex", gap: 14, justifyContent: "center" }}>
-                        <button type="button" className="doodle-btn rough-sm social-btn" aria-label="Google">
+                        <button
+                            type="button"
+                            className="doodle-btn rough-sm social-btn"
+                            aria-label="Google"
+                            onClick={() => (window.location.href = getOAuthUrl("google"))}
+                        >
                             <GoogleIcon />
                         </button>
-                        <button type="button" className="doodle-btn rough-sm social-btn" aria-label="GitHub">
+                        <button
+                            type="button"
+                            className="doodle-btn rough-sm social-btn"
+                            aria-label="GitHub"
+                            onClick={() => (window.location.href = getOAuthUrl("github"))}
+                        >
                             <GithubIcon />
                         </button>
-                        <button type="button" className="doodle-btn rough-sm social-btn" aria-label="Facebook">
+                        <button
+                            type="button"
+                            className="doodle-btn rough-sm social-btn"
+                            aria-label="Facebook"
+                            onClick={() => (window.location.href = getOAuthUrl("facebook"))}
+                        >
                             <FacebookIcon />
                         </button>
                     </div>

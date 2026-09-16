@@ -12,7 +12,7 @@ import styles from "../../pages/LoginPage/styles";
  */
 export default function BoatMockup() {
   return (
-    <div style={styles.boatArea}>
+    <div style={styles.boatArea} className="split-right">
       <span style={styles.boatBadge}>MOCKUP</span>
       <BoatSketch />
       <p style={styles.boatLabel}>

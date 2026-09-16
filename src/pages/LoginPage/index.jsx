@@ -6,7 +6,7 @@ import { GoogleIcon, GithubIcon, FacebookIcon } from "../../components/common/ic
 import styles from "./styles";
 import seenIcon from "../../assets/images/seen.png";
 import closeEyeIcon from "../../assets/images/close-eye.png";
-import { loginUser } from "../../lib/api";
+import { loginUser, getOAuthUrl } from "../../lib/api";
 
 /**
  * DoodleLoginPage
@@ -57,6 +57,11 @@ export default function DoodleLoginPage() {
 
       navigate("/welcome");
     } catch (err) {
+      if (err.code === "EMAIL_NOT_VERIFIED") {
+        // The backend already sent a fresh OTP — just take them to enter it.
+        navigate("/verify-otp", { state: { email: err.email || email } });
+        return;
+      }
       setErrors((prev) => ({ ...prev, form: err.message }));
     } finally {
       setSubmitting(false);
@@ -64,17 +69,17 @@ export default function DoodleLoginPage() {
   }
 
   return (
-    <div style={styles.page}>
+    <div style={styles.page} className="auth-page">
       <GlobalStyles />
 
       {/* LEFT: floating login card */}
-      <div style={styles.card} className="card-clean">
+      <div style={styles.card} className="card-clean auth-card">
         <div style={styles.brandRow}>
           <span style={styles.brandDot} />
           <span style={styles.brandText}>Crew Space</span>
         </div>
 
-        <h1 style={styles.heading}>เข้าสู่ระบบ</h1>
+        <h1 style={styles.heading} className="auth-heading">เข้าสู่ระบบ</h1>
         <p style={styles.subheading}>ดีใจที่เจอกันอีกครั้งนะ! กรอกข้อมูลเพื่อเข้าทีมของคุณ</p>
 
         <form
@@ -122,9 +127,9 @@ export default function DoodleLoginPage() {
             {errors.password && <span style={styles.errorText}>{errors.password}</span>}
           </label>
 
-          <a href="#forgot" style={styles.forgotLink}>
+          <Link to="/forgot-password" style={styles.forgotLink}>
             ลืมรหัสผ่าน?
-          </a>
+          </Link>
 
           {errors.form && (
             <p style={{ ...styles.errorText, textAlign: "center" }}>{errors.form}</p>
@@ -141,13 +146,28 @@ export default function DoodleLoginPage() {
           </div>
 
           <div style={{ display: "flex", gap: 14, justifyContent: "center" }}>
-            <button type="button" className="doodle-btn rough-sm social-btn" aria-label="Google">
+            <button
+              type="button"
+              className="doodle-btn rough-sm social-btn"
+              aria-label="Google"
+              onClick={() => (window.location.href = getOAuthUrl("google"))}
+            >
               <GoogleIcon />
             </button>
-            <button type="button" className="doodle-btn rough-sm social-btn" aria-label="GitHub">
+            <button
+              type="button"
+              className="doodle-btn rough-sm social-btn"
+              aria-label="GitHub"
+              onClick={() => (window.location.href = getOAuthUrl("github"))}
+            >
               <GithubIcon />
             </button>
-            <button type="button" className="doodle-btn rough-sm social-btn" aria-label="Facebook">
+            <button
+              type="button"
+              className="doodle-btn rough-sm social-btn"
+              aria-label="Facebook"
+              onClick={() => (window.location.href = getOAuthUrl("facebook"))}
+            >
               <FacebookIcon />
             </button>
           </div>
