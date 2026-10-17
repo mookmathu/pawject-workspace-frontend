@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { searchUsers } from "../../lib/api";
-import { DateFields, TimeFields, dateToFields, timeToFields, fieldsToDate } from "./DateTimeFields";
+import { DateFields, TimeFields, dateToFields, timeToFields, fieldsToDate, fixRange, rangeMs } from "./DateTimeFields";
 
 export default function EventModal({ event, onClose, onUpdate, onDelete }) {
   const [title, setTitle] = useState(event.title);
@@ -31,28 +31,33 @@ export default function EventModal({ event, onClose, onUpdate, onDelete }) {
   function handleToggleAllDay() {
     const next = !isAllDay;
     setIsAllDay(next);
+    const fixed = fixRange({ startDate: startDateFields, startTime: startTimeFields, endDate: endDateFields, endTime: endTimeFields, isAllDay: next, changed: "end", prevMs: 0 });
+    setEndDateFields(fixed.endDate);
+    setEndTimeFields(fixed.endTime);
     onUpdate({
       isAllDay: next,
-      startDate: fieldsToDate(startDateFields, next ? { hour: 0, minute: 0 } : startTimeFields).toISOString(),
-      endDate: fieldsToDate(endDateFields, next ? { hour: 23, minute: 59 } : endTimeFields).toISOString(),
+      startDate: fieldsToDate(fixed.startDate, next ? { hour: 0, minute: 0 } : fixed.startTime).toISOString(),
+      endDate: fieldsToDate(fixed.endDate, next ? { hour: 23, minute: 59 } : fixed.endTime).toISOString(),
     });
   }
-  function commitStartDate(next) {
-    setStartDateFields(next);
-    onUpdate({ startDate: fieldsToDate(next, isAllDay ? { hour: 0, minute: 0 } : startTimeFields).toISOString() });
+  // Every start/end edit is validated together (end must stay after start),
+  // then saved as one update containing both dates.
+  function commitRange(patch, changed) {
+    const cur = { startDate: startDateFields, startTime: startTimeFields, endDate: endDateFields, endTime: endTimeFields, isAllDay };
+    const fixed = fixRange({ ...cur, ...patch, changed, prevMs: rangeMs(cur) });
+    setStartDateFields(fixed.startDate);
+    setStartTimeFields(fixed.startTime);
+    setEndDateFields(fixed.endDate);
+    setEndTimeFields(fixed.endTime);
+    onUpdate({
+      startDate: fieldsToDate(fixed.startDate, isAllDay ? { hour: 0, minute: 0 } : fixed.startTime).toISOString(),
+      endDate: fieldsToDate(fixed.endDate, isAllDay ? { hour: 23, minute: 59 } : fixed.endTime).toISOString(),
+    });
   }
-  function commitStartTime(next) {
-    setStartTimeFields(next);
-    onUpdate({ startDate: fieldsToDate(startDateFields, next).toISOString() });
-  }
-  function commitEndDate(next) {
-    setEndDateFields(next);
-    onUpdate({ endDate: fieldsToDate(next, isAllDay ? { hour: 23, minute: 59 } : endTimeFields).toISOString() });
-  }
-  function commitEndTime(next) {
-    setEndTimeFields(next);
-    onUpdate({ endDate: fieldsToDate(endDateFields, next).toISOString() });
-  }
+  const commitStartDate = (v) => commitRange({ startDate: v }, "start");
+  const commitStartTime = (v) => commitRange({ startTime: v }, "start");
+  const commitEndDate = (v) => commitRange({ endDate: v }, "end");
+  const commitEndTime = (v) => commitRange({ endTime: v }, "end");
   useEffect(() => {
     if (!attendeeQuery.trim()) {
       setAttendeeResults([]);
@@ -183,7 +188,7 @@ const styles = {
   overlay: {
     position: "fixed",
     inset: 0,
-    background: "rgba(34,29,23,0.35)",
+    background: "rgba(53,59,70,0.35)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -192,10 +197,10 @@ const styles = {
   },
   sheet: {
     position: "relative",
-    background: "#FFFDF8",
-    border: "2px solid #221D17",
+    background: "var(--bg-surface)",
+    border: "2px solid var(--ink)",
     borderRadius: 20,
-    boxShadow: "6px 6px 0 0 #221D17",
+    boxShadow: "6px 6px 0 0 var(--ink)",
     width: "100%",
     maxWidth: 440,
     maxHeight: "88vh",
@@ -210,21 +215,21 @@ const styles = {
     background: "transparent",
     border: "none",
     fontSize: 24,
-    color: "#8A8071",
+    color: "var(--ink-faint)",
     cursor: "pointer",
     lineHeight: 1,
   },
   creatorLine: {
     fontFamily: "'Itim', cursive",
     fontSize: 12.5,
-    color: "#8A8071",
+    color: "var(--ink-faint)",
     margin: "0 0 6px",
   },
   titleInput: {
     fontFamily: "'Itim', cursive",
     fontWeight: 700,
     fontSize: 22,
-    color: "#221D17",
+    color: "var(--ink)",
     border: "none",
     outline: "none",
     width: "100%",
@@ -234,7 +239,7 @@ const styles = {
   descInput: {
     fontFamily: "'Itim', cursive",
     fontSize: 14,
-    color: "#5C5346",
+    color: "var(--ink-soft)",
     border: "1.5px solid #ECE6D8",
     borderRadius: 10,
     padding: "10px 12px",
@@ -255,13 +260,13 @@ const styles = {
   rowLabel: {
     fontFamily: "'Itim', cursive",
     fontSize: 14,
-    color: "#8A8071",
+    color: "var(--ink-faint)",
     flexShrink: 0,
   },
   dateInput: {
     fontFamily: "'Itim', cursive",
     fontSize: 13,
-    color: "#221D17",
+    color: "var(--ink)",
     border: "none",
     outline: "none",
     background: "transparent",
@@ -287,8 +292,8 @@ const styles = {
     flexShrink: 0,
   },
   toggleOn: {
-    background: "#3E6BE0",
-    border: "2px solid #3E6BE0",
+    background: "var(--accent-color)",
+    border: "2px solid var(--accent-color)",
   },
   toggleKnob: {
     position: "absolute",
@@ -297,7 +302,7 @@ const styles = {
     width: 16,
     height: 16,
     borderRadius: "50%",
-    background: "#FFFDF8",
+    background: "var(--bg-surface)",
     transition: "transform 120ms ease",
   },
   toggleKnobOn: {
@@ -306,7 +311,7 @@ const styles = {
   inviteHint: {
     fontFamily: "'Itim', cursive",
     fontSize: 13,
-    color: "#8A8071",
+    color: "var(--ink-faint)",
     margin: "16px 0 6px",
   },
   inviteChips: {
@@ -338,7 +343,7 @@ const styles = {
   inviteInput: {
     fontFamily: "'Itim', cursive",
     fontSize: 13,
-    color: "#221D17",
+    color: "var(--ink)",
     border: "1.5px solid #ECE6D8",
     borderRadius: 8,
     padding: "6px 10px",
@@ -351,10 +356,10 @@ const styles = {
     top: "calc(100% + 4px)",
     left: 0,
     right: 0,
-    background: "#FFFDF8",
-    border: "2px solid #221D17",
+    background: "var(--bg-surface)",
+    border: "2px solid var(--ink)",
     borderRadius: 10,
-    boxShadow: "3px 3px 0 0 #221D17",
+    boxShadow: "3px 3px 0 0 var(--ink)",
     listStyle: "none",
     margin: 0,
     padding: 4,
@@ -368,7 +373,7 @@ const styles = {
     textAlign: "left",
     fontFamily: "'Itim', cursive",
     fontSize: 13,
-    color: "#221D17",
+    color: "var(--ink)",
     background: "transparent",
     border: "none",
     borderRadius: 6,

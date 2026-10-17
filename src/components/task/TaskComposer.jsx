@@ -7,7 +7,7 @@ import { CalendarPickerField, dateToFields, fieldsToDate } from "../calendar/Dat
  * and three "+ เพิ่ม ..." rows underneath that each turn into a real
  * field once clicked — description, due date, category.
  */
-export default function TaskComposer({ onSubmit, categories = [], members = [] }) {
+export default function TaskComposer({ onSubmit, categories = [], members = [], openRequest = 0 }) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -23,6 +23,14 @@ export default function TaskComposer({ onSubmit, categories = [], members = [] }
   useEffect(() => {
     if (open) titleRef.current?.focus();
   }, [open]);
+
+  // The board's column "+" buttons and the header's "เพิ่มงานใหม่" button
+  // can't reach into this component's own `open` state, so they bump a
+  // counter instead — each increase opens the composer (focusing its title
+  // input, which also scrolls it into view in a long column).
+  useEffect(() => {
+    if (openRequest > 0) setOpen(true);
+  }, [openRequest]);
 
   function reset() {
     setOpen(false);
@@ -163,19 +171,19 @@ const styles = {
   collapsedBtn: {
     fontFamily: "'Itim', cursive",
     fontSize: 13,
-    color: "#5C5346",
-    background: "transparent",
-    border: "2px dashed #C9C0AE",
+    color: "var(--ink-soft)",
+    background: "color-mix(in srgb, var(--bg-surface) 55%, transparent)",
+    border: "2px dashed var(--ink-faint)",
     borderRadius: "10px 16px 10px 16px / 14px 10px 14px 10px",
-    padding: "8px 10px",
+    padding: "9px 10px",
     width: "100%",
     boxSizing: "border-box",
     cursor: "pointer",
-    textAlign: "left",
+    textAlign: "center",
   },
   composer: {
-    background: "#FFFDF8",
-    border: "2px solid #221D17",
+    background: "var(--bg-surface)",
+    border: "2px solid var(--ink)",
     borderRadius: "10px 16px 10px 16px / 14px 10px 14px 10px",
     padding: "12px 14px",
     display: "flex",
@@ -186,7 +194,7 @@ const styles = {
     fontFamily: "'Itim', cursive",
     fontSize: 14,
     fontWeight: 700,
-    color: "#221D17",
+    color: "var(--ink)",
     border: "none",
     outline: "none",
     padding: "2px 0",
@@ -199,7 +207,7 @@ const styles = {
   },
   fieldIcon: {
     fontSize: 13,
-    color: "#8A8071",
+    color: "var(--ink-faint)",
     width: 16,
     textAlign: "center",
     flexShrink: 0,
@@ -207,7 +215,7 @@ const styles = {
   fieldInput: {
     fontFamily: "'Itim', cursive",
     fontSize: 13,
-    color: "#5C5346",
+    color: "var(--ink-soft)",
     border: "none",
     borderBottom: "1.5px solid #E7E2D6",
     outline: "none",
@@ -218,7 +226,7 @@ const styles = {
   fieldSelect: {
     fontFamily: "'Itim', cursive",
     fontSize: 13,
-    color: "#5C5346",
+    color: "var(--ink-soft)",
     border: "none",
     borderBottom: "1.5px solid #E7E2D6",
     outline: "none",
@@ -234,7 +242,7 @@ const styles = {
   toggleBtn: {
     fontFamily: "'Itim', cursive",
     fontSize: 12.5,
-    color: "#8A8071",
+    color: "var(--ink-faint)",
     background: "transparent",
     border: "none",
     padding: "3px 0",
@@ -251,7 +259,7 @@ const styles = {
     fontSize: 13,
     fontWeight: 700,
     color: "#FFFDF8",
-    background: "#3E6BE0",
+    background: "var(--accent-color)",
     border: "none",
     borderRadius: 8,
     padding: "6px 14px",
@@ -260,7 +268,7 @@ const styles = {
   cancelBtn: {
     fontFamily: "'Itim', cursive",
     fontSize: 13,
-    color: "#8A8071",
+    color: "var(--ink-faint)",
     background: "transparent",
     border: "none",
     padding: "6px 8px",

@@ -1,7 +1,7 @@
 import React from "react";
 
 const common = {
-  stroke: "#221D17",
+  stroke: "var(--ink)",
   strokeWidth: 2.2,
   strokeLinecap: "round",
   strokeLinejoin: "round",
@@ -55,6 +55,27 @@ export function GearIcon(props) {
         d="M12 3.5v2.2M12 18.3v2.2M20.5 12h-2.2M5.7 12H3.5M17.8 6.2l-1.5 1.5M7.7 16.3l-1.5 1.5M17.8 17.8l-1.5-1.5M7.7 7.7 6.2 6.2"
         {...common}
       />
+    </svg>
+  );
+}
+
+// Light/dark theme toggle — sun for "switch to dark", moon for "switch to light".
+export function SunIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" {...props}>
+      <circle cx="12" cy="12" r="4.2" {...common} />
+      <path
+        d="M12 2.5v2.4M12 19.1v2.4M21.5 12h-2.4M4.9 12H2.5M18.4 5.6l-1.7 1.7M7.3 16.7l-1.7 1.7M18.4 18.4l-1.7-1.7M7.3 7.3 5.6 5.6"
+        {...common}
+      />
+    </svg>
+  );
+}
+
+export function MoonIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" {...props}>
+      <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.8 6.8 0 0 0 10.5 10.5Z" {...common} strokeLinejoin="round" />
     </svg>
   );
 }

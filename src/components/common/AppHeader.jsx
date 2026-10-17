@@ -1,8 +1,38 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { GearIcon, BellIcon } from "./dashboardIcons";
+import { useNavigate, useLocation } from "react-router-dom";
+import { SunIcon, MoonIcon, BellIcon } from "./dashboardIcons";
 import styles from "./appShellStyles";
-import { getFriendRequests, acceptFriendRequest, rejectFriendRequest } from "../../lib/api";
+import { PawPrint } from "../mockups/DogSVG";
+import { useTheme } from "../../lib/ThemeContext";
+import {
+  getFriendRequests,
+  acceptFriendRequest,
+  rejectFriendRequest,
+  getNotifications,
+  markNotificationRead,
+  markAllNotificationsRead,
+  resolveAvatarUrl,
+} from "../../lib/api";
+import { getSocket } from "../../lib/socket";
+import { setTaskJump, setChatJump } from "../../lib/navJump";
+
+const NOTIF_ICON = {
+  task_assigned: "📋",
+  task_comment: "💬",
+  message: "✉️",
+};
+
+function formatRelativeTime(iso) {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const minutes = Math.floor(diffMs / 60000);
+  if (minutes < 1) return "เมื่อสักครู่";
+  if (minutes < 60) return `${minutes} นาทีที่แล้ว`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} ชม. ที่แล้ว`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days} วันที่แล้ว`;
+  return new Date(iso).toLocaleDateString("th-TH", { day: "numeric", month: "short" });
+}
 
 const NAV_ITEMS = [
   { label: "Home", path: "/home" },
@@ -21,16 +51,33 @@ function getStoredUser() {
   }
 }
 
-export default function AppHeader({ active }) {
+// Rendered once by AppLayout (not per-page anymore) — which nav pill is
+// "active" is derived from the current route instead of a prop, since a
+// single long-lived instance has no per-page prop to receive.
+export default function AppHeader() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { mode, toggleMode } = useTheme();
   const user = getStoredUser();
   const displayName = user?.name || "เพื่อนสมาชิก";
   const initial = displayName.trim().charAt(0).toUpperCase() || "?";
+  const avatarSrc = resolveAvatarUrl(user?.avatarUrl);
+  const [avatarLoadFailed, setAvatarLoadFailed] = useState(false);
+  // AppHeader now lives for the whole logged-in session (mounted once by
+  // AppLayout) instead of remounting per page, so give a newly-uploaded
+  // avatar a fresh chance instead of staying stuck on a stale failure.
+  useEffect(() => {
+    setAvatarLoadFailed(false);
+  }, [avatarSrc]);
 
   const [requests, setRequests] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [notifUnreadCount, setNotifUnreadCount] = useState(0);
   const [showRequests, setShowRequests] = useState(false);
   const [dropdownAlignLeft, setDropdownAlignLeft] = useState(false);
   const bellWrapRef = useRef(null);
+  const [navOpen, setNavOpen] = useState(false);
+  const navWrapRef = useRef(null);
 
   async function loadRequests() {
     try {
@@ -41,14 +88,42 @@ export default function AppHeader({ active }) {
     }
   }
 
+  async function loadNotifications() {
+    try {
+      const { notifications, unreadCount } = await getNotifications();
+      setNotifications(notifications);
+      setNotifUnreadCount(unreadCount);
+    } catch {
+      // silently ignore, same as loadRequests
+    }
+  }
+
   useEffect(() => {
     loadRequests();
+    loadNotifications();
+  }, []);
+
+  // AppHeader lives for the whole logged-in session (mounted once by
+  // AppLayout, which also owns the socket connection's lifetime — see its
+  // comment), so a notification created anywhere in the app while the
+  // person is on any page reaches the bell live, not just on next refresh.
+  useEffect(() => {
+    const socket = getSocket();
+    function handleNewNotification(notification) {
+      setNotifications((prev) => [notification, ...prev].slice(0, 30));
+      setNotifUnreadCount((prev) => prev + 1);
+    }
+    socket.on("notification:new", handleNewNotification);
+    return () => socket.off("notification:new", handleNewNotification);
   }, []);
 
   useEffect(() => {
     function handleClickOutside(e) {
       if (bellWrapRef.current && !bellWrapRef.current.contains(e.target)) {
         setShowRequests(false);
+      }
+      if (navWrapRef.current && !navWrapRef.current.contains(e.target)) {
+        setNavOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -79,37 +154,128 @@ export default function AppHeader({ active }) {
     navigate("/");
   }
 
+  // Marks it read (optimistically — no need to wait on the network for the
+  // dropdown to stop highlighting it) and jumps to wherever it points, using
+  // the same sessionStorage "deep link" the Home dashboard and Calendar's
+  // task chips use, since Task/Chat pick their active board/conversation
+  // from client state rather than the URL.
+  function handleNotificationClick(notification) {
+    setShowRequests(false);
+    if (!notification.readAt) {
+      setNotifications((prev) => prev.map((n) => (n.id === notification.id ? { ...n, readAt: new Date().toISOString() } : n)));
+      setNotifUnreadCount((prev) => Math.max(0, prev - 1));
+      markNotificationRead(notification.id).catch(() => {});
+    }
+
+    const link = notification.link;
+    if (!link) return;
+    if (link.type === "task") {
+      setTaskJump({ workspaceId: link.workspaceId, taskId: link.taskId });
+      navigate("/task");
+    } else if (link.type === "workspace_chat") {
+      setChatJump({ type: "workspace", id: link.workspaceId, name: link.workspaceName });
+      navigate("/chat");
+    } else if (link.type === "dm") {
+      setChatJump({ type: "dm", id: link.userId, name: link.name });
+      navigate("/chat");
+    }
+  }
+
+  async function handleMarkAllRead() {
+    setNotifications((prev) => prev.map((n) => (n.readAt ? n : { ...n, readAt: new Date().toISOString() })));
+    setNotifUnreadCount(0);
+    try {
+      await markAllNotificationsRead();
+    } catch {
+      // best-effort — a stale unread count self-corrects next time the bell loads
+    }
+  }
+
   return (
     <header className="app-navbar" style={styles.navBar}>
       <style>{`
-        @media (max-width: 480px) {
-          .app-navbar { padding: 10px 14px !important; gap: 8px !important; }
-          .app-navbar .app-logout-btn { padding: 6px 10px !important; font-size: 12.5px !important; }
+        .app-brand{display:inline-flex;align-items:center;gap:8px;background:none;border:none;padding:0;cursor:pointer;font-family:'Itim',cursive;color:var(--ink)}
+        .app-brand-name{font-size:24px;font-weight:700;letter-spacing:.2px;line-height:1}
+        .app-navslot{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:46px;height:46px;z-index:12}
+        .app-nav{position:absolute;left:50%;top:0;transform:translateX(-50%);display:flex;align-items:center;height:46px;box-sizing:border-box;padding:0 !important;overflow:hidden;white-space:nowrap;background:var(--bg-surface);border:2px solid var(--ink);border-radius:999px;box-shadow:3px 3px 0 0 var(--ink);transition:box-shadow .15s}
+        .app-nav-paw{flex:0 0 auto;width:42px;height:42px;display:inline-flex;align-items:center;justify-content:center;background:none;border:none;border-radius:50%;cursor:pointer;padding:0}
+        .app-nav-paw svg{transition:transform .25s}
+        .app-nav.is-open .app-nav-paw svg{transform:rotate(-18deg) scale(1.08)}
+        .app-nav-items{display:flex;align-items:center;gap:2px;max-width:0;opacity:0;transition:max-width .28s ease,opacity .2s ease,padding .28s ease;padding:0}
+        .app-nav.is-open .app-nav-items{max-width:560px;opacity:1;padding:0 6px 0 0}
+        .app-nav:not(.is-open) .app-nav-items{pointer-events:none}
+        @media (max-width: 720px) {
+          .app-navbar { padding: 10px 14px !important; gap: 10px !important; }
+          .app-navslot{position:static;transform:none;width:46px;order:1;margin-left:auto}
+          .app-nav{left:50%;top:calc(100% + 8px)}
+          .app-nav.is-open{max-width:calc(100vw - 20px)}
+          .app-nav-item{padding:8px 10px !important;font-size:13.5px !important}
+          .app-brand-name{font-size:20px}
+          .app-navright { order:2; }
         }
+        @media (max-width: 480px) {
+          .app-navbar .app-logout-btn { padding: 6px 10px !important; font-size: 12.5px !important; }
+          .app-navbar .app-username { display:none }
+        }
+        @media (prefers-reduced-motion: reduce){.app-nav-items,.app-nav-paw svg{transition:none}}
       `}</style>
-      <nav style={{ ...styles.pillNav, ...styles.pillNavCompact }}>
-        {NAV_ITEMS.map(({ label, path }) => {
-          const isActive = label === active;
-          return (
-            <button
-              key={label}
-              type="button"
-              onClick={() => navigate(path)}
-              style={{
-                ...styles.pillNavItem,
-                ...styles.pillNavItemCompact,
-                ...(isActive ? styles.pillNavItemActive : {}),
-              }}
-            >
-              {label}
-            </button>
-          );
-        })}
-      </nav>
+      <button type="button" className="app-brand" onClick={() => navigate("/home")} title="Pawject">
+        <PawPrint size={34} color="var(--accent-color)" />
+        <span className="app-brand-name">Pawject</span>
+      </button>
 
-      <div style={styles.navRight}>
-        <button type="button" style={styles.iconBtn} title="ตั้งค่า">
-          <GearIcon />
+      <div
+        className="app-navslot"
+        ref={navWrapRef}
+        onPointerEnter={(e) => e.pointerType === "mouse" && setNavOpen(true)}
+        onPointerLeave={(e) => e.pointerType === "mouse" && setNavOpen(false)}
+      >
+        <nav className={`app-nav${navOpen ? " is-open" : ""}`} aria-label="เมนูหลัก">
+          <button
+            type="button"
+            className="app-nav-paw"
+            aria-expanded={navOpen}
+            aria-label="เมนู"
+            title="เมนู"
+            onClick={() => setNavOpen((o) => !o)}
+          >
+            <PawPrint size={26} color="var(--ink)" />
+          </button>
+          <div className="app-nav-items">
+            {NAV_ITEMS.map(({ label, path }) => {
+              const isActive = location.pathname === path;
+              return (
+                <button
+                  key={label}
+                  type="button"
+                  className="app-nav-item"
+                  tabIndex={navOpen ? 0 : -1}
+                  onClick={() => {
+                    setNavOpen(false);
+                    navigate(path);
+                  }}
+                  style={{
+                    ...styles.pillNavItem,
+                    ...styles.pillNavItemCompact,
+                    ...(isActive ? styles.pillNavItemActive : {}),
+                  }}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        </nav>
+      </div>
+
+      <div className="app-navright" style={styles.navRight}>
+        <button
+          type="button"
+          style={styles.iconBtn}
+          title={mode === "dark" ? "สลับเป็นธีมสว่าง" : "สลับเป็นธีมมืด"}
+          onClick={toggleMode}
+        >
+          {mode === "dark" ? <MoonIcon /> : <SunIcon />}
         </button>
 
         <div ref={bellWrapRef} style={styles.bellWrap}>
@@ -122,6 +288,7 @@ export default function AppHeader({ active }) {
               setShowRequests(opening);
               if (opening) {
                 loadRequests();
+                loadNotifications();
                 // Right-aligned dropdown would run off-screen if the bell
                 // sits near the left edge (e.g. header wrapped to 2 rows).
                 const rect = bellWrapRef.current?.getBoundingClientRect();
@@ -130,7 +297,9 @@ export default function AppHeader({ active }) {
             }}
           >
             <BellIcon />
-            {requests.length > 0 && <span style={styles.bellBadge}>{requests.length}</span>}
+            {requests.length + notifUnreadCount > 0 && (
+              <span style={styles.bellBadge}>{requests.length + notifUnreadCount}</span>
+            )}
           </button>
 
           {showRequests && (
@@ -151,7 +320,8 @@ export default function AppHeader({ active }) {
                       <div>
                         <p style={styles.bellRequestName}>{r.sender.name}</p>
                         <p style={styles.bellRequestMeta}>
-                          @{r.sender.username} · {r.sender.orgName}
+                          @{r.sender.username}
+                          {r.sender.orgName ? ` · ${r.sender.orgName}` : ""}
                         </p>
                       </div>
                       <div style={styles.bellRequestActions}>
@@ -176,16 +346,64 @@ export default function AppHeader({ active }) {
                   ))}
                 </ul>
               )}
+
+              <div style={styles.bellDivider} />
+
+              <div style={styles.bellNotifHeaderRow}>
+                <p style={styles.bellDropdownTitle}>การแจ้งเตือน</p>
+                {notifUnreadCount > 0 && (
+                  <button type="button" style={styles.bellMarkAllBtn} onClick={handleMarkAllRead}>
+                    อ่านทั้งหมด
+                  </button>
+                )}
+              </div>
+              {notifications.length === 0 ? (
+                <p style={styles.bellEmptyText}>ยังไม่มีการแจ้งเตือน</p>
+              ) : (
+                <ul style={styles.bellNotifList}>
+                  {notifications.map((n) => (
+                    <li key={n.id}>
+                      <button
+                        type="button"
+                        onClick={() => handleNotificationClick(n)}
+                        style={{ ...styles.bellNotifRow, ...(n.readAt ? {} : styles.bellNotifRowUnread) }}
+                      >
+                        <span style={styles.bellNotifIcon}>{NOTIF_ICON[n.type] || "🔔"}</span>
+                        <span style={styles.bellNotifBody}>
+                          <span style={styles.bellNotifTitle}>{n.title}</span>
+                          {n.body && <span style={styles.bellNotifSnippet}>{n.body}</span>}
+                          <span style={styles.bellNotifTime}>{formatRelativeTime(n.createdAt)}</span>
+                        </span>
+                        {!n.readAt && <span style={styles.bellNotifDot} />}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           )}
         </div>
 
-        <div style={styles.userChip} title={user?.email || ""}>
-          <span style={styles.avatar}>{initial}</span>
+        <button
+          type="button"
+          style={{ ...styles.userChip, background: "none", border: "none", padding: 0, cursor: "pointer" }}
+          title={user?.email || ""}
+          onClick={() => navigate("/profile")}
+        >
+          {avatarSrc && !avatarLoadFailed ? (
+            <img
+              src={avatarSrc}
+              alt=""
+              style={{ ...styles.avatar, objectFit: "cover" }}
+              onError={() => setAvatarLoadFailed(true)}
+            />
+          ) : (
+            <span style={styles.avatar}>{initial}</span>
+          )}
           <span className="app-username" style={styles.userName}>
             {displayName}
           </span>
-        </div>
+        </button>
 
         <button type="button" onClick={handleLogout} className="app-logout-btn" style={styles.logoutBtn}>
           ออกจากระบบ

@@ -37,7 +37,7 @@ export default function OAuthCallbackPage() {
       <div style={styles.card} className="card-clean auth-card">
         <div style={styles.brandRow}>
           <span style={styles.brandDot} />
-          <span style={styles.brandText}>Crew Space</span>
+          <span style={styles.brandText}>Pawject</span>
         </div>
         {error ? (
           <>
@@ -52,7 +52,7 @@ export default function OAuthCallbackPage() {
             </button>
           </>
         ) : (
-          <p style={{ textAlign: "center", marginTop: 20, color: "#8A8071", fontFamily: "'Itim', cursive" }}>
+          <p style={{ textAlign: "center", marginTop: 20, color: "var(--ink-faint)", fontFamily: "'Itim', cursive" }}>
             กำลังเข้าสู่ระบบ...
           </p>
         )}

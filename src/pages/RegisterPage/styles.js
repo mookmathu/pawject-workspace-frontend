@@ -24,12 +24,12 @@ const styles = {
   },
   checkboxLabel: {
     fontSize: 14.5,
-    color: "#5C5346",
+    color: "var(--ink-soft)",
     lineHeight: 1.5,
     cursor: "pointer",
   },
   termsLink: {
-    color: "#3E6BE0",
+    color: "var(--accent-color)",
     textDecoration: "none",
     fontWeight: 700,
   },
@@ -58,7 +58,7 @@ const styles = {
     padding: "10px 12px",
     borderRadius: 10,
     border: "2px solid #D8CFBF",
-    background: "#FFFDF8",
+    background: "var(--bg-surface)",
     fontSize: 14,
     fontWeight: 600,
     color: "#4A4436",
@@ -66,9 +66,9 @@ const styles = {
     transition: "all 0.15s ease",
   },
   orgTypeBtnActive: {
-    borderColor: "#3E6BE0",
+    borderColor: "var(--accent-color)",
     background: "#EAF0FF",
-    color: "#3E6BE0",
+    color: "var(--accent-color)",
   },
   suggestionList: {
     listStyle: "none",
@@ -78,7 +78,7 @@ const styles = {
     top: "100%",
     left: 0,
     right: 0,
-    background: "#FFFDF8",
+    background: "var(--bg-surface)",
     border: "2px solid #D8CFBF",
     borderRadius: 10,
     maxHeight: 220,
@@ -87,24 +87,32 @@ const styles = {
     boxShadow: "0 6px 16px rgba(0,0,0,0.08)",
   },
   suggestionItem: {
+    // Rendered as a <button>, not the <li> itself, so it's natively
+    // focusable/keyboard-operable instead of relying on a mouse-only
+    // handler on a non-interactive element.
+    width: "100%",
     padding: "8px 10px",
     borderRadius: 8,
     fontSize: 14,
-    color: "#221D17",
+    fontFamily: "inherit",
+    color: "var(--ink)",
     cursor: "pointer",
     display: "flex",
     justifyContent: "space-between",
     gap: 10,
+    background: "none",
+    border: "none",
+    textAlign: "left",
   },
   suggestionMeta: {
     fontSize: 12,
-    color: "#8A8071",
+    color: "var(--ink-faint)",
     whiteSpace: "nowrap",
   },
   suggestionLoading: {
     padding: "8px 10px",
     fontSize: 13,
-    color: "#8A8071",
+    color: "var(--ink-faint)",
   },
 
   atPrefix: {
@@ -112,7 +120,7 @@ const styles = {
     left: 14,
     top: "50%",
     transform: "translateY(-50%)",
-    color: "#8A8071",
+    color: "var(--ink-faint)",
     fontWeight: 700,
     fontSize: 15,
     pointerEvents: "none",

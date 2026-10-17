@@ -13,21 +13,21 @@ export default function GlobalStyles() {
 
       .rough {
         position: relative;
-        border: 2.5px solid #221D17;
+        border: 2.5px solid var(--ink);
         border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
-        box-shadow: 5px 5px 0 0 #221D17;
+        box-shadow: 5px 5px 0 0 var(--ink);
       }
       .rough-sm {
         border-radius: 12px 24px 12px 24px / 20px 12px 20px 12px;
       }
       .rough-dashed {
         position: relative;
-        border: 2.5px dashed #221D17;
+        border: 2.5px dashed var(--ink);
         border-radius: 18px 32px 18px 32px / 28px 18px 28px 18px;
         background: #FBF8F1;
       }
       .card-clean {
-        background: #FFFDF8;
+        background: var(--bg-surface);
         border-radius: 28px;
         box-shadow: 0 20px 45px rgba(34, 29, 23, 0.12), 0 2px 8px rgba(34, 29, 23, 0.06);
       }
@@ -36,8 +36,8 @@ export default function GlobalStyles() {
 
       .doodle-input {
         font-family: 'Itim', cursive;
-        background: #FFFDF8;
-        border: 2px solid #221D17;
+        background: var(--bg-surface);
+        border: 2px solid var(--ink);
         border-radius: 10px 16px 10px 16px / 14px 10px 14px 10px;
         padding: 12px 14px;
         font-size: 17px;
@@ -46,7 +46,7 @@ export default function GlobalStyles() {
         transition: box-shadow 120ms ease, transform 120ms ease;
       }
       .doodle-input:focus {
-        box-shadow: 3px 3px 0 0 #221D17;
+        box-shadow: 3px 3px 0 0 var(--ink);
         transform: translate(-1px, -1px);
       }
       .doodle-input::placeholder { color: #A79E8E; }
@@ -54,19 +54,19 @@ export default function GlobalStyles() {
       .doodle-btn {
         font-family: 'Itim', cursive;
         font-weight: 700;
-        border: 2.5px solid #221D17;
+        border: 2.5px solid var(--ink);
         border-radius: 10px 16px 10px 16px / 14px 10px 14px 10px;
-        box-shadow: 4px 4px 0 0 #221D17;
+        box-shadow: 4px 4px 0 0 var(--ink);
         cursor: pointer;
         transition: transform 120ms ease, box-shadow 120ms ease;
       }
       .doodle-btn:hover {
         transform: translate(-2px, -2px);
-        box-shadow: 6px 6px 0 0 #221D17;
+        box-shadow: 6px 6px 0 0 var(--ink);
       }
       .doodle-btn:active {
         transform: translate(1px, 1px);
-        box-shadow: 2px 2px 0 0 #221D17;
+        box-shadow: 2px 2px 0 0 var(--ink);
       }
 
       .social-btn {
@@ -75,7 +75,7 @@ export default function GlobalStyles() {
         display: flex;
         align-items: center;
         justify-content: center;
-        background: #FFFDF8;
+        background: var(--bg-surface);
       }
 
       .wiggle { animation: wiggle 4.5s ease-in-out infinite; }

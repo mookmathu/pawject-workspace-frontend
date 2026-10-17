@@ -27,6 +27,7 @@ export default function TaskDetailModal({
   columns,
   categories = [],
   members = [],
+  canEdit = true,
   onClose,
   onUpdate,
   onDelete,
@@ -91,14 +92,22 @@ export default function TaskDetailModal({
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           onBlur={() => commit("title", title.trim())}
+          disabled={!canEdit}
           style={styles.titleInput}
         />
+
+        {!canEdit && (
+          <p style={styles.lockedBanner}>
+            🔒 งานนี้ถูกมอบหมายแล้ว ขอสงวนสิทธิ์แก้ไขให้เฉพาะผู้รับผิดชอบกับ Head กลุ่มนะคะ — ใครจะคอมเมนต์ก็ตามสบายเลย
+          </p>
+        )}
 
         <div className="task-detail-proprow" style={styles.propRow}>
           <span className="task-detail-proplabel" style={styles.propLabel}>⊙ หมวดหมู่</span>
           <select
             value={task.categoryId || ""}
             onChange={(e) => commit("categoryId", e.target.value)}
+            disabled={!canEdit}
             style={styles.propSelect}
           >
             <option value="">ไม่ระบุ</option>
@@ -115,6 +124,7 @@ export default function TaskDetailModal({
           <select
             value={task.assigneeId || ""}
             onChange={(e) => commit("assigneeId", e.target.value)}
+            disabled={!canEdit}
             style={styles.propSelect}
           >
             <option value="">ไม่ระบุ</option>
@@ -133,6 +143,7 @@ export default function TaskDetailModal({
             value={note}
             onChange={(e) => setNote(e.target.value)}
             onBlur={() => commit("note", note.trim())}
+            disabled={!canEdit}
             style={styles.propInput}
           />
         </div>
@@ -145,6 +156,7 @@ export default function TaskDetailModal({
               setPriority(e.target.value);
               commit("priority", e.target.value);
             }}
+            disabled={!canEdit}
             style={styles.propSelect}
           >
             <option value="">ว่างเปล่า</option>
@@ -158,7 +170,7 @@ export default function TaskDetailModal({
 
         <div className="task-detail-proprow" style={styles.propRow}>
           <span className="task-detail-proplabel" style={styles.propLabel}>วันครบกำหนด</span>
-          <CalendarPickerField value={dueDateFields} onChange={commitDueDate} />
+          <CalendarPickerField value={dueDateFields} onChange={commitDueDate} disabled={!canEdit} />
         </div>
 
         <div className="task-detail-proprow" style={styles.propRow}>
@@ -166,6 +178,7 @@ export default function TaskDetailModal({
           <select
             value={task.statusId}
             onChange={(e) => commit("statusId", e.target.value)}
+            disabled={!canEdit}
             style={styles.propSelect}
           >
             {columns.map((c) => (
@@ -218,11 +231,14 @@ export default function TaskDetailModal({
           </button>
         </div>
 
-        <hr style={styles.divider} />
-
-        <button type="button" onClick={onDelete} style={styles.deleteBtn}>
-          ลบงานนี้
-        </button>
+        {canEdit && (
+          <>
+            <hr style={styles.divider} />
+            <button type="button" onClick={onDelete} style={styles.deleteBtn}>
+              ลบงานนี้
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
@@ -232,7 +248,7 @@ const styles = {
   overlay: {
     position: "fixed",
     inset: 0,
-    background: "rgba(34,29,23,0.35)",
+    background: "rgba(53,59,70,0.35)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -241,10 +257,10 @@ const styles = {
   },
   sheet: {
     position: "relative",
-    background: "#FFFDF8",
-    border: "2px solid #221D17",
+    background: "var(--bg-surface)",
+    border: "2px solid var(--ink)",
     borderRadius: 20,
-    boxShadow: "6px 6px 0 0 #221D17",
+    boxShadow: "6px 6px 0 0 var(--ink)",
     width: "100%",
     maxWidth: 520,
     maxHeight: "85vh",
@@ -259,7 +275,7 @@ const styles = {
     background: "transparent",
     border: "none",
     fontSize: 24,
-    color: "#8A8071",
+    color: "var(--ink-faint)",
     cursor: "pointer",
     lineHeight: 1,
   },
@@ -267,12 +283,23 @@ const styles = {
     fontFamily: "'Itim', cursive",
     fontWeight: 700,
     fontSize: 26,
-    color: "#221D17",
+    color: "var(--ink)",
     border: "none",
     outline: "none",
     width: "100%",
-    marginBottom: 24,
+    marginBottom: 12,
     background: "transparent",
+  },
+  lockedBanner: {
+    fontFamily: "'Itim', cursive",
+    fontSize: 12.5,
+    color: "#8A5A1B",
+    background: "#FCE8C2",
+    border: "1.5px solid #E8C27A",
+    borderRadius: 10,
+    padding: "8px 12px",
+    margin: "0 0 18px",
+    lineHeight: 1.5,
   },
   propRow: {
     display: "flex",
@@ -284,14 +311,14 @@ const styles = {
   propLabel: {
     fontFamily: "'Itim', cursive",
     fontSize: 14,
-    color: "#8A8071",
+    color: "var(--ink-faint)",
     width: 150,
     flexShrink: 0,
   },
   propInput: {
     fontFamily: "'Itim', cursive",
     fontSize: 14,
-    color: "#221D17",
+    color: "var(--ink)",
     border: "none",
     outline: "none",
     background: "transparent",
@@ -300,7 +327,7 @@ const styles = {
   propSelect: {
     fontFamily: "'Itim', cursive",
     fontSize: 14,
-    color: "#221D17",
+    color: "var(--ink)",
     border: "none",
     outline: "none",
     background: "transparent",
@@ -315,7 +342,7 @@ const styles = {
     fontFamily: "'Itim', cursive",
     fontWeight: 700,
     fontSize: 16,
-    color: "#221D17",
+    color: "var(--ink)",
     margin: "0 0 10px",
   },
   commentError: {
@@ -327,7 +354,7 @@ const styles = {
   noComments: {
     fontFamily: "'Itim', cursive",
     fontSize: 13,
-    color: "#8A8071",
+    color: "var(--ink-faint)",
     margin: "0 0 10px",
   },
   commentList: {
@@ -357,7 +384,7 @@ const styles = {
   commentContent: {
     fontFamily: "'Itim', cursive",
     fontSize: 13.5,
-    color: "#221D17",
+    color: "#353B46",
     margin: 0,
     wordBreak: "break-word",
   },
@@ -378,7 +405,7 @@ const styles = {
   commentInput: {
     fontFamily: "'Itim', cursive",
     fontSize: 13.5,
-    color: "#221D17",
+    color: "var(--ink)",
     border: "1.5px solid #E7E2D6",
     borderRadius: 10,
     padding: "8px 12px",
@@ -390,7 +417,7 @@ const styles = {
     fontSize: 13.5,
     fontWeight: 700,
     color: "#FFFDF8",
-    background: "#3E6BE0",
+    background: "var(--accent-color)",
     border: "none",
     borderRadius: 10,
     padding: "8px 16px",

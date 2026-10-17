@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import GlobalStyles from "../../components/common/GlobalStyles";
-import BoatMockup from "../../components/mockups/BoatMockup";
+import DogHero from "../../components/mockups/DogHero";
 import { GoogleIcon, GithubIcon, FacebookIcon } from "../../components/common/icons";
 import styles from "./styles";
 import seenIcon from "../../assets/images/seen.png";
@@ -190,7 +190,7 @@ export default function RegisterPage() {
             <div style={styles.card} className="card-clean auth-card">
                 <div style={styles.brandRow}>
                     <span style={styles.brandDot} />
-                    <span style={styles.brandText}>Crew Space</span>
+                    <span style={styles.brandText}>Pawject</span>
                 </div>
 
                 <h1 style={styles.heading} className="auth-heading">สมัครสมาชิก</h1>
@@ -233,12 +233,12 @@ export default function RegisterPage() {
                                 style={{
                                     ...styles.usernameHint,
                                     color: usernameChecking
-                                        ? "#8A8071"
+                                        ? "var(--ink-faint)"
                                         : usernameAvailable === false
                                         ? "#E0473E"
                                         : usernameAvailable === true
                                         ? "#2E8B4F"
-                                        : "#8A8071",
+                                        : "var(--ink-faint)",
                                 }}
                             >
                                 {usernameChecking
@@ -320,13 +320,15 @@ export default function RegisterPage() {
                                             <li style={styles.suggestionLoading}>ไม่พบชื่อที่ตรงกัน — กรอกเองได้เลย</li>
                                         )}
                                         {orgSuggestions.map((uni) => (
-                                            <li
-                                                key={uni.en}
-                                                style={styles.suggestionItem}
-                                                onMouseDown={() => handleSelectSuggestion(uni)}
-                                            >
-                                                {uni.th}
-                                                <span style={styles.suggestionMeta}>{uni.en}</span>
+                                            <li key={uni.en}>
+                                                <button
+                                                    type="button"
+                                                    style={styles.suggestionItem}
+                                                    onMouseDown={() => handleSelectSuggestion(uni)}
+                                                >
+                                                    {uni.th}
+                                                    <span style={styles.suggestionMeta}>{uni.en}</span>
+                                                </button>
                                             </li>
                                         ))}
                                     </ul>
@@ -371,7 +373,7 @@ export default function RegisterPage() {
                                             key={rule.key}
                                             style={{
                                                 ...styles.passwordRuleItem,
-                                                color: passed ? "#2E8B4F" : "#8A8071",
+                                                color: passed ? "#2E8B4F" : "var(--ink-faint)",
                                             }}
                                         >
                                             {passed ? "✓" : "○"} {rule.label}
@@ -462,8 +464,8 @@ export default function RegisterPage() {
                 </form>
             </div>
 
-            {/* RIGHT: boat illustration placeholder (shared with login) */}
-            <BoatMockup />
+            {/* RIGHT: Pawject pup illustration (shared with login) */}
+            <DogHero />
         </div>
     );
 }

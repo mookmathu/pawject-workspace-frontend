@@ -6,7 +6,7 @@ const styles = {
   page: {
     minHeight: "100vh",
     width: "100%",
-    background: "#EDE7D9",
+    background: "var(--bg-page)",
     backgroundImage:
       "radial-gradient(#00000012 1px, transparent 1px), radial-gradient(#00000012 1px, transparent 1px)",
     backgroundSize: "24px 24px",
@@ -22,7 +22,7 @@ const styles = {
 
   /* --- login card (left) --- */
   card: {
-    background: "#FFFDF8",
+    background: "var(--bg-surface)",
     width: 440,
     maxWidth: "100%",
     padding: "48px 44px",
@@ -38,29 +38,29 @@ const styles = {
     height: 12,
     borderRadius: "50%",
     background: "#F4B740",
-    border: "2px solid #221D17",
+    border: "2px solid var(--ink)",
   },
   brandText: {
     fontFamily: "'Itim', cursive",
     fontWeight: 700,
-    color: "#3E6BE0",
+    color: "var(--accent-color)",
     fontSize: 15,
   },
   heading: {
     fontFamily: "'Itim', cursive",
     fontWeight: 700,
     fontSize: 40,
-    color: "#221D17",
+    color: "var(--ink)",
     margin: "4px 0 6px",
   },
   subheading: {
-    color: "#5C5346",
+    color: "var(--ink-soft)",
     fontSize: 17,
     margin: 0,
   },
   label: {
     fontSize: 16,
-    color: "#221D17",
+    color: "var(--ink)",
     display: "flex",
     flexDirection: "column",
   },
@@ -77,12 +77,12 @@ const styles = {
   forgotLink: {
     alignSelf: "flex-end",
     fontSize: 14,
-    color: "#3E6BE0",
+    color: "var(--accent-color)",
     textDecoration: "none",
     marginTop: -8,
   },
   signInBtn: {
-    background: "#3E6BE0",
+    background: "var(--accent-color)",
     color: "#FFFDF8",
     fontSize: 19,
     padding: "12px 0",
@@ -97,18 +97,18 @@ const styles = {
   dividerLine: {
     flex: 1,
     height: 2,
-    background: "#221D17",
+    background: "var(--ink)",
     opacity: 0.25,
   },
   dividerText: {
     fontSize: 13,
-    color: "#8A8071",
+    color: "var(--ink-faint)",
     whiteSpace: "nowrap",
   },
   footerText: {
     textAlign: "center",
     fontSize: 15,
-    color: "#5C5346",
+    color: "var(--ink-soft)",
     marginTop: 6,
   },
   registerLink: {
@@ -133,16 +133,16 @@ const styles = {
   boatLabel: {
     fontFamily: "'Itim', cursive",
     fontSize: 16,
-    color: "#8A8071",
+    color: "var(--ink-faint)",
     margin: 0,
     lineHeight: 1.6,
   },
   boatBadge: {
     fontFamily: "'Itim', cursive",
     fontSize: 13,
-    color: "#221D17",
+    color: "#353B46",
     background: "#FFD166",
-    border: "2px solid #221D17",
+    border: "2px solid var(--ink)",
     borderRadius: "8px 14px 8px 14px / 12px 8px 12px 8px",
     padding: "4px 12px",
   },

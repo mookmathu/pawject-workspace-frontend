@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getMyWorkspaces, getWorkspaceBoard, getEvents, createEvent, updateEvent, deleteEvent } from "../../lib/api";
+import { useWorkspaces } from "../../lib/WorkspacesContext";
+import { getWorkspaceBoard, getEvents, createEvent, updateEvent, deleteEvent } from "../../lib/api";
+import { setTaskJump } from "../../lib/navJump";
 import EventModal from "./EventModal";
 import EventComposerModal from "./EventComposerModal";
 
@@ -8,14 +10,14 @@ import EventComposerModal from "./EventComposerModal";
 // (same logic as TaskBoard's — duplicated here since it's tiny and this
 // file doesn't otherwise depend on that one).
 function getContrastText(hex) {
-  if (!hex) return "#221D17";
+  if (!hex) return "var(--ink)";
   const clean = hex.replace("#", "");
   const full = clean.length === 3 ? clean.split("").map((c) => c + c).join("") : clean;
   const r = parseInt(full.substring(0, 2), 16);
   const g = parseInt(full.substring(2, 4), 16);
   const b = parseInt(full.substring(4, 6), 16);
   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return luminance > 0.6 ? "#221D17" : "#FFFDF8";
+  return luminance > 0.6 ? "#353B46" : "#FFFDF8";
 }
 
 const THAI_MONTHS = [
@@ -55,6 +57,7 @@ function buildMonthGrid(year, month) {
 
 export default function CalendarView() {
   const navigate = useNavigate();
+  const { workspaces, loading: workspacesLoading } = useWorkspaces();
   const [viewDate, setViewDate] = useState(() => new Date());
   const [events, setEvents] = useState([]);
   const [tasksWithDueDate, setTasksWithDueDate] = useState([]);
@@ -82,13 +85,28 @@ export default function CalendarView() {
 
   async function loadTasks() {
     try {
-      // Same personal-workspace-only approach as TaskBoard for now — the
-      // group switcher will extend this to other workspaces later.
-      const { workspaces } = await getMyWorkspaces();
-      const personal = workspaces.find((w) => w.isPersonal) || workspaces[0];
-      if (!personal) return;
-      const { board } = await getWorkspaceBoard(personal.id);
-      setTasksWithDueDate((board?.tasks || []).filter((t) => t.dueDate));
+      // Pull every workspace the user belongs to (personal + every group
+      // they're a member of) — a due date set on a task in a shared group
+      // board must show up here too, not just tasks on the personal board.
+      // The workspace list itself comes from the shared WorkspacesContext
+      // now (see loadTasks' effect below), not a fetch of its own.
+      const boards = await Promise.all(
+        workspaces.map((w) =>
+          getWorkspaceBoard(w.id)
+            .then((res) => res.board)
+            .catch(() => null)
+        )
+      );
+      const allTasks = boards.flatMap((board, i) =>
+        (board?.tasks || []).map((t) => ({
+          ...t,
+          workspaceId: workspaces[i].id,
+          workspaceName: workspaces[i].isPersonal ? "ของฉัน" : workspaces[i].name,
+        }))
+      );
+      // Only tasks that actually have a due date and aren't archived belong
+      // on the calendar.
+      setTasksWithDueDate(allTasks.filter((t) => t.dueDate && !t.archivedAt));
     } catch (err) {
       if (err.status === 401) {
         navigate("/");
@@ -103,9 +121,10 @@ export default function CalendarView() {
   }, [year, month]);
 
   useEffect(() => {
+    if (workspacesLoading) return; // wait for the shared workspace list to resolve
     loadTasks();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [workspacesLoading]);
 
   function goToPrevMonth() {
     setViewDate(new Date(year, month - 1, 1));
@@ -117,7 +136,11 @@ export default function CalendarView() {
     setViewDate(new Date());
   }
 
+  const addingRef = useRef(false); // blocks a double-click from creating the event twice
+
   async function handleAddEvent(payload) {
+    if (addingRef.current) return;
+    addingRef.current = true;
     try {
       const { notFoundUsernames } = await createEvent(payload);
       if (notFoundUsernames && notFoundUsernames.length > 0) {
@@ -129,6 +152,8 @@ export default function CalendarView() {
       loadEvents();
     } catch (err) {
       setError(err.message);
+    } finally {
+      addingRef.current = false;
     }
   }
 
@@ -256,9 +281,14 @@ export default function CalendarView() {
                       • {item.data.title}
                     </button>
                   ) : (
-                    <span
+                    <button
                       key={`task-${item.data.id}`}
+                      type="button"
                       className="cal-task-chip"
+                      onClick={() => {
+                        setTaskJump({ workspaceId: item.data.workspaceId, taskId: item.data.id });
+                        navigate("/task");
+                      }}
                       style={{
                         ...styles.taskChip,
                         ...(item.data.categoryRef
@@ -268,10 +298,18 @@ export default function CalendarView() {
                             }
                           : {}),
                       }}
-                      title={item.data.title}
+                      title={`${item.data.title} (${item.data.workspaceName}) — ไปที่หน้า Task`}
                     >
-                      ☐ {item.data.title}
-                    </span>
+                      <span style={styles.taskChipTitle}>☐ {item.data.title}</span>
+                      <span
+                        style={{
+                          ...styles.taskChipWorkspace,
+                          ...(item.data.categoryRef ? { color: "inherit", opacity: 0.75 } : {}),
+                        }}
+                      >
+                        {item.data.workspaceName}
+                      </span>
+                    </button>
                   )
                 )}
               </div>
@@ -302,7 +340,7 @@ export default function CalendarView() {
 
 const styles = {
   wrap: {
-    border: "2px solid #221D17",
+    border: "2px solid var(--ink)",
     padding: "24px",
     boxSizing: "border-box",
   },
@@ -318,7 +356,7 @@ const styles = {
     fontFamily: "'Itim', cursive",
     fontWeight: 700,
     fontSize: 22,
-    color: "#221D17",
+    color: "var(--ink)",
     margin: 0,
   },
   navBtns: {
@@ -330,19 +368,19 @@ const styles = {
     width: 32,
     height: 32,
     borderRadius: "50%",
-    border: "2px solid #221D17",
-    background: "#FFFDF8",
+    border: "2px solid var(--ink)",
+    background: "var(--bg-surface)",
     fontSize: 16,
     lineHeight: 1,
     cursor: "pointer",
-    color: "#221D17",
+    color: "var(--ink)",
   },
   todayBtn: {
     fontFamily: "'Itim', cursive",
     fontSize: 13,
-    color: "#221D17",
-    background: "#FFFDF8",
-    border: "2px solid #221D17",
+    color: "var(--ink)",
+    background: "var(--bg-surface)",
+    border: "2px solid var(--ink)",
     borderRadius: 8,
     padding: "6px 12px",
     cursor: "pointer",
@@ -363,7 +401,7 @@ const styles = {
     textAlign: "center",
     fontSize: 12.5,
     fontWeight: 700,
-    color: "#8A8071",
+    color: "var(--ink-faint)",
     padding: "4px 0",
   },
   grid: {
@@ -373,7 +411,7 @@ const styles = {
   },
   dayCell: {
     minHeight: 96,
-    background: "#FFFDF8",
+    background: "var(--bg-surface)",
     border: "1px solid #ECE6D8",
     borderRadius: 10,
     padding: "6px 6px 8px",
@@ -383,7 +421,7 @@ const styles = {
     gap: 4,
   },
   dayCellMuted: {
-    background: "#F6F3EC",
+    background: "var(--bg-page)",
     opacity: 0.6,
   },
   dayTopRow: {
@@ -394,7 +432,7 @@ const styles = {
   dayNumber: {
     fontSize: 12.5,
     fontWeight: 700,
-    color: "#5C5346",
+    color: "var(--ink-soft)",
     width: 20,
     height: 20,
     display: "flex",
@@ -403,7 +441,7 @@ const styles = {
     borderRadius: "50%",
   },
   dayNumberToday: {
-    background: "#3E6BE0",
+    background: "var(--accent-color)",
     color: "#FFFDF8",
   },
   dayAddBtn: {
@@ -412,7 +450,7 @@ const styles = {
     borderRadius: "50%",
     border: "1.5px dashed #C9C0AE",
     background: "transparent",
-    color: "#8A8071",
+    color: "var(--ink-faint)",
     fontSize: 12,
     lineHeight: 1,
     cursor: "pointer",
@@ -440,12 +478,28 @@ const styles = {
     whiteSpace: "nowrap",
   },
   taskChip: {
+    display: "flex",
+    flexDirection: "column",
     fontFamily: "'Itim', cursive",
     fontSize: 11,
-    color: "#5C5346",
-    background: "#EDE7D9",
+    color: "var(--ink-soft)",
+    background: "var(--bg-page)",
+    border: "none",
     borderRadius: 6,
     padding: "2px 6px",
+    textAlign: "left",
+    cursor: "pointer",
+    width: "100%",
+    boxSizing: "border-box",
+  },
+  taskChipTitle: {
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  },
+  taskChipWorkspace: {
+    fontSize: 9.5,
+    color: "var(--ink-faint)",
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",

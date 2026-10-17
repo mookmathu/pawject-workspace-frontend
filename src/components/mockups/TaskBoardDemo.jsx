@@ -5,7 +5,7 @@ const COLUMNS = [
     key: "not_started",
     label: "Not started",
     color: "#E7E2D6",
-    text: "#5C5346",
+    text: "var(--ink-soft)",
     cards: [{ title: "พาน้องหมาไปหาหมอ", tag: "ครบกำหนด 4/11", tagColor: "#F6C9C4" }],
   },
   {
@@ -90,7 +90,7 @@ export default function TaskBoardDemo() {
 
 const taskStyles = {
   board: {
-    border: "2px solid #221D17",
+    border: "2px solid var(--ink)",
     padding: "28px 28px 24px",
     boxSizing: "border-box",
   },
@@ -101,7 +101,7 @@ const taskStyles = {
     fontFamily: "'Itim', cursive",
     fontWeight: 700,
     fontSize: 24,
-    color: "#221D17",
+    color: "var(--ink)",
     margin: "0 0 4px",
     display: "flex",
     alignItems: "center",
@@ -109,11 +109,11 @@ const taskStyles = {
   },
   chevron: {
     fontSize: 18,
-    color: "#8A8071",
+    color: "var(--ink-faint)",
   },
   boardSubtitle: {
     fontSize: 14,
-    color: "#8A8071",
+    color: "var(--ink-faint)",
     margin: 0,
   },
   columns: {
@@ -135,15 +135,15 @@ const taskStyles = {
     marginBottom: 4,
   },
   card: {
-    background: "#FFFDF8",
-    border: "2px solid #221D17",
+    background: "var(--bg-surface)",
+    border: "2px solid var(--ink)",
     borderRadius: "10px 16px 10px 16px / 14px 10px 14px 10px",
     padding: "12px 14px",
   },
   cardTitle: {
     fontSize: 14,
     fontWeight: 700,
-    color: "#221D17",
+    color: "var(--ink)",
     margin: "0 0 6px",
   },
   cardTag: {
@@ -156,21 +156,21 @@ const taskStyles = {
   },
   cardNote: {
     fontSize: 12,
-    color: "#8A8071",
+    color: "var(--ink-faint)",
     margin: "0 0 6px",
   },
   subtaskList: {
     margin: 0,
     padding: "0 0 0 16px",
     fontSize: 12.5,
-    color: "#5C5346",
+    color: "var(--ink-soft)",
     lineHeight: 1.7,
   },
   subtaskItem: {},
   addTaskBtn: {
     fontFamily: "'Itim', cursive",
     fontSize: 13,
-    color: "#8A8071",
+    color: "var(--ink-faint)",
     background: "transparent",
     border: "2px dashed #C9C0AE",
     borderRadius: "10px 16px 10px 16px / 14px 10px 14px 10px",

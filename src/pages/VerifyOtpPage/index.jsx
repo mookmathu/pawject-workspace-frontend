@@ -125,7 +125,7 @@ export default function VerifyOtpPage() {
             <div style={styles.card} className="card-clean otp-card">
                 <div style={styles.brandRow}>
                     <span style={styles.brandDot} />
-                    <span style={styles.brandText}>Crew Space</span>
+                    <span style={styles.brandText}>Pawject</span>
                 </div>
 
                 <h1 style={styles.heading}>ยืนยันอีเมลของคุณ</h1>

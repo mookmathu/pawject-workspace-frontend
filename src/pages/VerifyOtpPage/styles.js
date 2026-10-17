@@ -2,7 +2,7 @@ const styles = {
   page: {
     minHeight: "100vh",
     width: "100%",
-    background: "#EDE7D9",
+    background: "var(--bg-page)",
     backgroundImage:
       "radial-gradient(#00000012 1px, transparent 1px), radial-gradient(#00000012 1px, transparent 1px)",
     backgroundSize: "24px 24px",
@@ -14,7 +14,7 @@ const styles = {
     fontFamily: "'Itim', cursive",
   },
   card: {
-    background: "#FFFDF8",
+    background: "var(--bg-surface)",
     width: 440,
     maxWidth: "100%",
     padding: "48px 44px",
@@ -32,29 +32,29 @@ const styles = {
     height: 12,
     borderRadius: "50%",
     background: "#F4B740",
-    border: "2px solid #221D17",
+    border: "2px solid var(--ink)",
   },
   brandText: {
     fontFamily: "'Itim', cursive",
     fontWeight: 700,
-    color: "#3E6BE0",
+    color: "var(--accent-color)",
     fontSize: 15,
   },
   heading: {
     fontFamily: "'Itim', cursive",
     fontWeight: 700,
     fontSize: 32,
-    color: "#221D17",
+    color: "var(--ink)",
     margin: "4px 0 6px",
   },
   subheading: {
-    color: "#5C5346",
+    color: "var(--ink-soft)",
     fontSize: 16,
     margin: "0 0 28px",
     lineHeight: 1.6,
   },
   emailHighlight: {
-    color: "#221D17",
+    color: "var(--ink)",
     fontWeight: 700,
   },
   otpRow: {
@@ -86,7 +86,7 @@ const styles = {
     fontWeight: 600,
   },
   verifyBtn: {
-    background: "#3E6BE0",
+    background: "var(--accent-color)",
     color: "#FFFDF8",
     fontSize: 18,
     padding: "12px 0",
@@ -96,12 +96,12 @@ const styles = {
   resendRow: {
     marginTop: 18,
     fontSize: 14,
-    color: "#5C5346",
+    color: "var(--ink-soft)",
   },
   resendBtn: {
     background: "none",
     border: "none",
-    color: "#3E6BE0",
+    color: "var(--accent-color)",
     fontWeight: 700,
     fontSize: 14,
     cursor: "pointer",
@@ -109,14 +109,14 @@ const styles = {
     fontFamily: "'Itim', cursive",
   },
   resendBtnDisabled: {
-    color: "#8A8071",
+    color: "var(--ink-faint)",
     cursor: "default",
   },
   backLink: {
     display: "inline-block",
     marginTop: 24,
     fontSize: 14,
-    color: "#8A8071",
+    color: "var(--ink-faint)",
     textDecoration: "none",
   },
 };

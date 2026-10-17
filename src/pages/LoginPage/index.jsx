@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import GlobalStyles from "../../components/common/GlobalStyles";
-import BoatMockup from "../../components/mockups/BoatMockup";
+import DogHero from "../../components/mockups/DogHero";
 import { GoogleIcon, GithubIcon, FacebookIcon } from "../../components/common/icons";
 import styles from "./styles";
 import seenIcon from "../../assets/images/seen.png";
@@ -11,7 +11,7 @@ import { loginUser, getOAuthUrl } from "../../lib/api";
 /**
  * DoodleLoginPage
  * Layout: login card (left) floats beside an illustration area (right) —
- * matching the "Crew Space" reference where the card and illustration are
+ * matching the "Pawject" reference where the card and illustration are
  * two separate elements, not boxed together.
  * Decoration: hand-drawn / doodle notebook style.
  */
@@ -76,7 +76,7 @@ export default function DoodleLoginPage() {
       <div style={styles.card} className="card-clean auth-card">
         <div style={styles.brandRow}>
           <span style={styles.brandDot} />
-          <span style={styles.brandText}>Crew Space</span>
+          <span style={styles.brandText}>Pawject</span>
         </div>
 
         <h1 style={styles.heading} className="auth-heading">เข้าสู่ระบบ</h1>
@@ -181,8 +181,8 @@ export default function DoodleLoginPage() {
         </form>
       </div>
 
-      {/* RIGHT: boat illustration placeholder */}
-      <BoatMockup />
+      {/* RIGHT: Pawject pup illustration */}
+      <DogHero />
     </div>
   );
 }

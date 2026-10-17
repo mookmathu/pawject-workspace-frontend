@@ -2,12 +2,12 @@
 // a fixed predefined list of categories — new category names just pick
 // the next color in rotation based on a simple hash of the text.
 const PALETTE = [
-  { bg: "#F6D3D0", text: "#7A3B34" }, // rose
-  { bg: "#D7E8FB", text: "#2C5F8A" }, // sky
-  { bg: "#E3DEF6", text: "#5B4EA6" }, // lavender
-  { bg: "#DCEFD9", text: "#2E8B4F" }, // mint
-  { bg: "#FCE8C2", text: "#8A5A1B" }, // sand
-  { bg: "#F6C9C4", text: "#B5453C" }, // coral
+  { bg: "#DCE9F8", text: "#2F5E9E" }, // Paw Blue
+  { bg: "#F7D9C7", text: "#8A4A22" }, // Peach Biscuit
+  { bg: "#DCEBDD", text: "#2F6B3F" }, // Sage Puppy
+  { bg: "#F6E7A9", text: "#7A5E0B" }, // Butter Treat
+  { bg: "#F1DFED", text: "#7A3F78" }, // Lavender Paw
+  { bg: "#F9D6DC", text: "#9B3A4E" }, // Blush
 ];
 
 export function categoryColor(text) {

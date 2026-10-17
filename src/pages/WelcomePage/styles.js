@@ -1,18 +1,15 @@
 /**
- * WelcomePage is now just the launcher: a full-viewport illustrated
- * hero with an avatar+greeting and a big pill nav overlaid on it.
- * Clicking a nav item navigates to a real page (Dashboard/Task/Chat/
- * Calendar), each with its own compact header — see AppHeader and
- * appShellStyles for those shared pieces.
+ * Welcome launcher: animated harbor scene behind a greeting block and a
+ * grid of destination cards. Hover/focus effects live in the <style> tag
+ * inside index.jsx (inline styles can't express :hover).
  */
 const styles = {
   page: {
     width: "100%",
     minHeight: "100vh",
     fontFamily: "'Itim', cursive",
-    background: "#EDE7D9",
+    background: "var(--bg-page)",
   },
-
   hero: {
     position: "relative",
     width: "100%",
@@ -21,39 +18,122 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    background:
-      "linear-gradient(180deg, #EEF2F5 0%, #E2ECF1 10%, #D2E5EF 22%, #BEDCEC 36%, #9FCFE6 50%, #7EBBDA 64%, #5C9FCB 76%, #3E7CAE 88%, #2C5F8A 100%)",
   },
-  heroSvg: {
-    position: "absolute",
-    inset: 0,
-    width: "100%",
-    height: "100%",
-  },
-
-  homeHeader: {
+  content: {
     position: "relative",
     zIndex: 2,
+    width: "100%",
+    maxWidth: 980,
+    padding: "44px 24px 200px",
+    boxSizing: "border-box",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: 24,
-    width: "100%",
-    padding: "40px 24px 0",
-    boxSizing: "border-box",
+    gap: 28,
   },
-  homeGreetingRow: {
+  greeting: {
     display: "flex",
+    flexDirection: "column",
     alignItems: "center",
-    gap: 14,
-  },
-  heroGreeting: {
-    fontFamily: "'Itim', cursive",
-    fontWeight: 700,
-    fontSize: "clamp(24px, 3.2vw, 34px)",
-    color: "#221D17",
-    margin: 0,
+    gap: 6,
     textAlign: "center",
+  },
+  avatarRing: {
+    padding: 4,
+    borderRadius: "50%",
+    background: "var(--bg-surface)",
+    borderWidth: 2.5,
+    borderStyle: "solid",
+    borderColor: "var(--ink)",
+    boxShadow: "3px 3px 0 0 var(--ink)",
+    marginBottom: 6,
+    display: "inline-flex",
+  },
+  kicker: { fontSize: 15, color: "var(--ink-soft)", margin: 0 },
+  name: {
+    fontWeight: 700,
+    fontSize: "clamp(28px, 4.4vw, 44px)",
+    color: "var(--ink)",
+    margin: 0,
+    lineHeight: 1.15,
+  },
+  date: { fontSize: 14, color: "var(--ink-soft)", margin: 0 },
+  status: {
+    marginTop: 6,
+    display: "inline-flex",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: 8,
+  },
+  statusChip: {
+    padding: "5px 14px",
+    borderRadius: "255px 15px 225px 15px / 15px 225px 15px 255px",
+    background: "var(--bg-surface)",
+    color: "var(--ink)",
+    fontSize: 14,
+    borderWidth: 2,
+    borderStyle: "solid",
+    borderColor: "var(--ink)",
+  },
+  grid: {
+    width: "100%",
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+    gap: 16,
+  },
+  card: {
+    position: "relative",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-start",
+    gap: 6,
+    padding: "18px 16px 16px",
+    textAlign: "left",
+    cursor: "pointer",
+    fontFamily: "inherit",
+    color: "var(--ink)",
+    background: "var(--bg-surface)",
+    borderWidth: 2.5,
+    borderStyle: "solid",
+    borderColor: "var(--ink)",
+    borderRadius: "18px 6px 16px 8px / 8px 16px 6px 18px",
+    boxShadow: "4px 4px 0 0 var(--ink)",
+  },
+  cardIcon: { display: "inline-flex", marginBottom: 2 },
+  cardTitle: { fontSize: 20, fontWeight: 700, margin: 0 },
+  cardDesc: { fontSize: 13.5, color: "var(--ink-soft)", margin: 0, lineHeight: 1.35 },
+  badge: {
+    position: "absolute",
+    top: -10,
+    right: -8,
+    minWidth: 24,
+    height: 24,
+    padding: "0 7px",
+    boxSizing: "border-box",
+    borderRadius: 12,
+    background: "#E0473E",
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: 700,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderStyle: "solid",
+    borderColor: "var(--ink)",
+  },
+  footer: { display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" },
+  footBtn: {
+    padding: "7px 16px",
+    fontFamily: "inherit",
+    fontSize: 14,
+    color: "var(--ink)",
+    cursor: "pointer",
+    background: "var(--bg-surface)",
+    borderWidth: 2,
+    borderStyle: "solid",
+    borderColor: "var(--ink)",
+    borderRadius: 255,
   },
 };
 

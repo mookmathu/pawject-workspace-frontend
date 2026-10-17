@@ -24,12 +24,12 @@ const styles = {
   },
   checkboxLabel: {
     fontSize: 14.5,
-    color: "#5C5346",
+    color: "var(--ink-soft)",
     lineHeight: 1.5,
     cursor: "pointer",
   },
   termsLink: {
-    color: "#3E6BE0",
+    color: "var(--accent-color)",
     textDecoration: "none",
     fontWeight: 700,
   },

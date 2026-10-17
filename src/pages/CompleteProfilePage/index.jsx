@@ -117,7 +117,7 @@ export default function CompleteProfilePage() {
       <div style={styles.card} className="card-clean auth-card">
         <div style={styles.brandRow}>
           <span style={styles.brandDot} />
-          <span style={styles.brandText}>Crew Space</span>
+          <span style={styles.brandText}>Pawject</span>
         </div>
 
         <h1 style={styles.heading} className="auth-heading">
@@ -146,12 +146,12 @@ export default function CompleteProfilePage() {
                 style={{
                   ...styles.usernameHint,
                   color: usernameChecking
-                    ? "#8A8071"
+                    ? "var(--ink-faint)"
                     : usernameAvailable === false
                     ? "#E0473E"
                     : usernameAvailable === true
                     ? "#2E8B4F"
-                    : "#8A8071",
+                    : "var(--ink-faint)",
                 }}
               >
                 {usernameChecking
@@ -215,9 +215,15 @@ export default function CompleteProfilePage() {
                     <li style={styles.suggestionLoading}>ไม่พบชื่อที่ตรงกัน — กรอกเองได้เลย</li>
                   )}
                   {orgSuggestions.map((uni) => (
-                    <li key={uni.en} style={styles.suggestionItem} onMouseDown={() => handleSelectSuggestion(uni)}>
-                      {uni.th}
-                      <span style={styles.suggestionMeta}>{uni.en}</span>
+                    <li key={uni.en}>
+                      <button
+                        type="button"
+                        style={styles.suggestionItem}
+                        onMouseDown={() => handleSelectSuggestion(uni)}
+                      >
+                        {uni.th}
+                        <span style={styles.suggestionMeta}>{uni.en}</span>
+                      </button>
                     </li>
                   ))}
                 </ul>

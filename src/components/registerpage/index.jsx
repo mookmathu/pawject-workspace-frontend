@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import GlobalStyles from "../loginpage/GlobalStyles";
-import BoatMockup from "../loginpage/BoatMockup";
+import DogHero from "../mockups/DogHero";
 import { GoogleIcon, GithubIcon, FacebookIcon } from "../loginpage/icons";
 import styles from "./styles";
 import seenIcon from "../../images/seen.png";
@@ -29,7 +29,7 @@ export default function RegisterPage() {
             <div style={styles.card} className="card-clean">
                 <div style={styles.brandRow}>
                     <span style={styles.brandDot} />
-                    <span style={styles.brandText}>Crew Space</span>
+                    <span style={styles.brandText}>Pawject</span>
                 </div>
 
                 <h1 style={styles.heading}>สมัครสมาชิก</h1>
@@ -146,8 +146,8 @@ export default function RegisterPage() {
                 </form>
             </div>
 
-            {/* RIGHT: boat illustration placeholder (shared with login) */}
-            <BoatMockup />
+            {/* RIGHT: Pawject pup illustration (shared with login) */}
+            <DogHero />
         </div>
     );
 }
