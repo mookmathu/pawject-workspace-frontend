@@ -206,10 +206,14 @@ export default function AppHeader() {
         .app-nav:not(.is-open) .app-nav-items{pointer-events:none}
         @media (max-width: 720px) {
           .app-navbar { padding: 10px 14px !important; gap: 10px !important; }
-          .app-navslot{position:static;transform:none;width:46px;order:1;margin-left:auto}
-          .app-nav{left:50%;top:calc(100% + 8px)}
-          .app-nav.is-open{max-width:calc(100vw - 20px)}
-          .app-nav-item{padding:8px 10px !important;font-size:13.5px !important}
+          /* Phone: the paw sits in the first row (right of the brand) and its
+             items drop down as a small card under it — not a pill that
+             stretches across the screen and covers the page title. */
+          .app-navslot{position:relative;left:auto;top:auto;transform:none;width:46px;order:1;margin-left:auto}
+          .app-nav{left:auto;right:0;top:0;transform:none;overflow:visible}
+          .app-nav-items{position:absolute;top:calc(100% + 10px);right:0;flex-direction:column;align-items:stretch;gap:4px;width:176px;max-width:none;padding:8px;background:var(--bg-surface);border:2px solid var(--ink);border-radius:16px;box-shadow:3px 3px 0 0 var(--ink);opacity:0;visibility:hidden;transform:translateY(-6px);transition:opacity .2s ease,transform .2s ease,visibility .2s}
+          .app-nav.is-open .app-nav-items{max-width:none;padding:8px;opacity:1;visibility:visible;transform:none}
+          .app-nav-item{width:100%;text-align:left;padding:10px 12px !important;font-size:15px !important}
           .app-brand-name{font-size:20px}
           .app-navright { order:2; }
         }

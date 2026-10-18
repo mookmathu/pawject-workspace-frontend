@@ -206,7 +206,8 @@ export default function CalendarView() {
           .cal-day { min-height: 60px !important; padding: 4px 3px 5px !important; border-radius: 8px !important; }
           .cal-day-number { width: 16px !important; height: 16px !important; font-size: 10.5px !important; }
           .cal-day-addbtn { opacity: 1; width: 14px !important; height: 14px !important; } /* no hover on touch — always visible, smaller */
-          .cal-event-chip, .cal-task-chip { font-size: 9px !important; padding: 1px 4px !important; }
+          .cal-event-chip, .cal-task-chip { font-size: 9px !important; padding: 1px 4px !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; min-width: 0 !important; }
+          .cal-day { min-width: 0 !important; overflow: hidden !important; }
           .cal-title { font-size: 17px !important; }
         }
       `}</style>
@@ -393,7 +394,7 @@ const styles = {
   },
   weekdayRow: {
     display: "grid",
-    gridTemplateColumns: "repeat(7, 1fr)",
+    gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
     marginTop: 18,
     marginBottom: 6,
   },
@@ -406,7 +407,7 @@ const styles = {
   },
   grid: {
     display: "grid",
-    gridTemplateColumns: "repeat(7, 1fr)",
+    gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
     gap: 6,
   },
   dayCell: {

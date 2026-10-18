@@ -281,11 +281,15 @@ export default function ProfilePage() {
               .profile-layout { grid-template-columns: 1fr !important; }
               .profile-side { position: static !important; }
             }
+            @media (max-width: 600px) {
+              .profile-avatar-big, .profile-avatar-big img, .profile-avatar-big > div:first-child { width: 128px !important; height: 128px !important; }
+              .profile-avatar-big > div:first-child { font-size: 50px !important; }
+            }
           `}</style>
 
           {/* --- sidebar: who you are --- */}
           <aside className="profile-side" style={styles.side}>
-            <div style={styles.avatarWrapBig}>
+            <div className="profile-avatar-big" style={styles.avatarWrapBig}>
               {avatarSrc && !avatarLoadFailed ? (
                 <img src={avatarSrc} alt="รูปโปรไฟล์" style={styles.avatarImgBig} onError={() => setAvatarLoadFailed(true)} />
               ) : (
