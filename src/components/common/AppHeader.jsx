@@ -204,7 +204,7 @@ export default function AppHeader() {
         .app-nav-items{display:flex;align-items:center;gap:2px;max-width:0;opacity:0;transition:max-width .28s ease,opacity .2s ease,padding .28s ease;padding:0}
         .app-nav.is-open .app-nav-items{max-width:560px;opacity:1;padding:0 6px 0 0}
         .app-nav:not(.is-open) .app-nav-items{pointer-events:none}
-        @media (max-width: 720px) {
+        @media (max-width: 960px) {
           .app-navbar { padding: 10px 14px !important; gap: 10px !important; }
           /* Phone: the paw sits in the first row (right of the brand) and its
              items drop down as a small card under it — not a pill that

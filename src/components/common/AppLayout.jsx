@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import GlobalStyles from "./GlobalStyles";
 import AppHeader from "./AppHeader";
 import styles from "./appShellStyles";
@@ -17,6 +17,9 @@ import { getSocket, disconnectSocket } from "../../lib/socket";
 // instance here, that fetch only runs once per session instead of once per
 // click, cutting a chunk of the redundant traffic hitting the database.
 export default function AppLayout() {
+  const { pathname } = useLocation();
+  // The calendar gets the whole viewport width (like the Task board would).
+  const wide = pathname === "/calendar";
   // The Task board is a wide, side-scrolling Kanban — it gets the whole
   // viewport width; every other page keeps the centered reading column.
 
@@ -38,7 +41,7 @@ export default function AppLayout() {
           <GlobalStyles />
           <AppHeader />
 
-          <main className="app-panel" style={styles.main}>
+          <main className="app-panel" style={wide ? { ...styles.main, maxWidth: "none", padding: "28px 32px 40px" } : styles.main}>
             <Outlet />
           </main>
         </div>

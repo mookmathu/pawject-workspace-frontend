@@ -25,6 +25,22 @@ const THAI_MONTHS = [
   "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม",
 ];
 const THAI_WEEKDAYS = ["อา", "จ", "อ", "พ", "พฤ", "ศ", "ส"];
+const THAI_WEEKDAYS_FULL = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"];
+
+function formatTime(d) {
+  return d.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit", hour12: false });
+}
+
+function formatLongDate(d) {
+  return `${THAI_WEEKDAYS_FULL[d.getDay()]}ที่ ${d.getDate()} ${THAI_MONTHS[d.getMonth()]} ${d.getFullYear() + 543}`;
+}
+
+// Order inside one day: all-day events, then timed events by clock time,
+// then tasks that are due that day.
+function agendaRank(item) {
+  if (item.type === "task") return 2;
+  return item.data.isAllDay === false ? 1 : 0;
+}
 
 function dateKey(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -59,6 +75,7 @@ export default function CalendarView() {
   const navigate = useNavigate();
   const { workspaces, loading: workspacesLoading } = useWorkspaces();
   const [viewDate, setViewDate] = useState(() => new Date());
+  const [selectedDate, setSelectedDate] = useState(() => new Date()); // the day whose schedule is listed under the grid
   const [events, setEvents] = useState([]);
   const [tasksWithDueDate, setTasksWithDueDate] = useState([]);
   const [error, setError] = useState("");
@@ -127,13 +144,26 @@ export default function CalendarView() {
   }, [workspacesLoading]);
 
   function goToPrevMonth() {
-    setViewDate(new Date(year, month - 1, 1));
+    const d = new Date(year, month - 1, 1);
+    setViewDate(d);
+    setSelectedDate(d);
   }
   function goToNextMonth() {
-    setViewDate(new Date(year, month + 1, 1));
+    const d = new Date(year, month + 1, 1);
+    setViewDate(d);
+    setSelectedDate(d);
   }
   function goToToday() {
-    setViewDate(new Date());
+    const d = new Date();
+    setViewDate(d);
+    setSelectedDate(d);
+  }
+  function selectDay(dateObj) {
+    setSelectedDate(dateObj);
+    // Tapping a greyed-out day from the neighbouring month jumps there.
+    if (dateObj.getMonth() !== month || dateObj.getFullYear() !== year) {
+      setViewDate(new Date(dateObj.getFullYear(), dateObj.getMonth(), 1));
+    }
   }
 
   const addingRef = useRef(false); // blocks a double-click from creating the event twice
@@ -192,23 +222,42 @@ export default function CalendarView() {
     (itemsByDay[key] ||= []).push({ type: "task", data: task });
   });
 
+  const selectedKey = dateKey(selectedDate);
+  const selectedIsToday = isSameDay(selectedDate, today);
+  const agendaItems = (itemsByDay[selectedKey] || []).slice().sort((a, b) => {
+    const r = agendaRank(a) - agendaRank(b);
+    if (r !== 0) return r;
+    if (a.type === "event" && b.type === "event") return new Date(a.data.startDate) - new Date(b.data.startDate);
+    return 0;
+  });
+
   return (
+    <div className="cal-page">
     <div className="card-clean cal-wrap" style={styles.wrap}>
       <style>{`
+        .cal-page { display: flex; flex-direction: column; gap: 18px; min-height: calc(100vh - 150px); }
+        .cal-day { cursor: pointer; transition: border-color 120ms ease, box-shadow 120ms ease; }
+        .cal-day:hover { border-color: var(--ink-faint) !important; }
+        .cal-day.is-selected { border: 2px solid var(--accent-color) !important; box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-color) 22%, transparent); }
         .cal-day-addbtn { opacity: 0; transition: opacity 120ms ease; }
         .cal-day:hover .cal-day-addbtn { opacity: 1; }
+        .cal-dots { display: none; }
+        .cal-agenda { flex: 1 1 auto; }
+        .cal-agenda-item:hover { background: var(--bg-page) !important; }
 
         @media (max-width: 640px) {
+          .cal-page { gap: 14px; }
           .cal-wrap { padding: 14px !important; }
-          .cal-grid { gap: 3px !important; }
+          .cal-grid { gap: 4px !important; }
           .cal-weekday-row { margin-top: 12px !important; }
-          .cal-weekday-cell { font-size: 10px !important; padding: 2px 0 !important; }
-          .cal-day { min-height: 60px !important; padding: 4px 3px 5px !important; border-radius: 8px !important; }
-          .cal-day-number { width: 16px !important; height: 16px !important; font-size: 10.5px !important; }
-          .cal-day-addbtn { opacity: 1; width: 14px !important; height: 14px !important; } /* no hover on touch — always visible, smaller */
-          .cal-event-chip, .cal-task-chip { font-size: 9px !important; padding: 1px 4px !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; min-width: 0 !important; }
-          .cal-day { min-width: 0 !important; overflow: hidden !important; }
-          .cal-title { font-size: 17px !important; }
+          .cal-weekday-cell { font-size: 11px !important; padding: 2px 0 !important; }
+          .cal-day { min-height: 52px !important; padding: 5px 2px 4px !important; border-radius: 10px !important; min-width: 0 !important; overflow: hidden !important; align-items: center; }
+          .cal-day-top { justify-content: center !important; }
+          .cal-day-number { width: 24px !important; height: 24px !important; font-size: 13px !important; }
+          .cal-day-addbtn, .cal-day-items { display: none !important; } /* phone: tap a day, add from the schedule below */
+          .cal-dots { display: flex; gap: 3px; align-items: center; justify-content: center; min-height: 8px; }
+          .cal-title { font-size: 19px !important; }
+          .cal-agenda { padding: 16px !important; }
         }
       `}</style>
 
@@ -247,10 +296,11 @@ export default function CalendarView() {
           return (
             <div
               key={i}
-              className="cal-day"
+              className={`cal-day${key === selectedKey ? " is-selected" : ""}`}
               style={{ ...styles.dayCell, ...(cell.currentMonth ? {} : styles.dayCellMuted) }}
+              onClick={() => selectDay(cell.dateObj)}
             >
-              <div style={styles.dayTopRow}>
+              <div className="cal-day-top" style={styles.dayTopRow}>
                 <span
                   className="cal-day-number"
                   style={{ ...styles.dayNumber, ...(isToday ? styles.dayNumberToday : {}) }}
@@ -260,7 +310,10 @@ export default function CalendarView() {
                 <button
                   type="button"
                   className="cal-day-addbtn"
-                  onClick={() => setComposingDate(cell.dateObj)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setComposingDate(cell.dateObj);
+                  }}
                   style={styles.dayAddBtn}
                   title="เพิ่มกิจกรรม"
                 >
@@ -268,7 +321,23 @@ export default function CalendarView() {
                 </button>
               </div>
 
-              <div style={styles.dayItems}>
+              <div className="cal-dots" aria-hidden="true">
+                {items.slice(0, 3).map((item) => (
+                  <span
+                    key={`${item.type}-${item.data.id}`}
+                    style={{
+                      width: 7,
+                      height: 7,
+                      borderRadius: "50%",
+                      background:
+                        item.type === "task" ? item.data.categoryRef?.color || "var(--accent-color)" : "#6A9BD8",
+                    }}
+                  />
+                ))}
+                {items.length > 3 && <span style={{ fontSize: 9, color: "var(--ink-faint)", lineHeight: 1 }}>+</span>}
+              </div>
+
+              <div className="cal-day-items" style={styles.dayItems}>
                 {items.map((item) =>
                   item.type === "event" ? (
                     <button
@@ -318,6 +387,77 @@ export default function CalendarView() {
           );
         })}
       </div>
+    </div>
+
+    <section className="card-clean cal-agenda" style={styles.agenda}>
+      <div style={styles.agendaHead}>
+        <div style={{ minWidth: 0 }}>
+          <div style={styles.agendaKicker}>
+            {selectedIsToday ? "🐾 วันนี้" : "กำหนดการ"}
+            {agendaItems.length > 0 ? ` · ${agendaItems.length} รายการ` : ""}
+          </div>
+          <h3 style={styles.agendaTitle}>{formatLongDate(selectedDate)}</h3>
+        </div>
+        <button type="button" onClick={() => setComposingDate(selectedDate)} style={styles.agendaAddBtn}>
+          + เพิ่มกิจกรรม
+        </button>
+      </div>
+
+      {agendaItems.length === 0 ? (
+        <div style={styles.agendaEmpty}>
+          <span style={{ fontSize: 34 }}>🐶</span>
+          <span>{selectedIsToday ? "วันนี้ยังว่าง ไม่มีกำหนดการ" : "วันนี้ไม่มีกำหนดการ"}</span>
+        </div>
+      ) : (
+        <ul style={styles.agendaList}>
+          {agendaItems.map((item) => {
+            const isEvent = item.type === "event";
+            const d = item.data;
+            let timeLabel = "ครบกำหนด";
+            if (isEvent) {
+              if (d.isAllDay === false) {
+                const st = new Date(d.startDate);
+                const en = d.endDate ? new Date(d.endDate) : null;
+                timeLabel = en && en.getTime() !== st.getTime() ? `${formatTime(st)}–${formatTime(en)}` : formatTime(st);
+              } else {
+                timeLabel = "ทั้งวัน";
+              }
+            }
+            const barColor = isEvent ? "#6A9BD8" : d.categoryRef?.color || "var(--accent-color)";
+            return (
+              <li key={`${item.type}-${d.id}`} style={{ listStyle: "none" }}>
+                <button
+                  type="button"
+                  className="cal-agenda-item"
+                  style={styles.agendaItem}
+                  onClick={() => {
+                    if (isEvent) {
+                      setExpandedEvent(d);
+                    } else {
+                      setTaskJump({ workspaceId: d.workspaceId, taskId: d.id });
+                      navigate("/task");
+                    }
+                  }}
+                >
+                  <span style={styles.agendaTime}>{timeLabel}</span>
+                  <span style={{ ...styles.agendaBar, background: barColor }} />
+                  <span style={styles.agendaBody}>
+                    <span style={styles.agendaItemTitle}>{isEvent ? d.title : `☐ ${d.title}`}</span>
+                    <span style={styles.agendaItemSub}>
+                      {isEvent
+                        ? d.attendees?.length
+                          ? `กิจกรรม · ${d.attendees.length} คนที่ถูกแท็ก`
+                          : "กิจกรรม"
+                        : `งาน · ${d.workspaceName}`}
+                    </span>
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
 
       {composingDate && (
         <EventComposerModal
@@ -504,5 +644,115 @@ const styles = {
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
+  },
+  agenda: {
+    border: "2px solid var(--ink)",
+    padding: "22px 24px",
+    boxSizing: "border-box",
+    display: "flex",
+    flexDirection: "column",
+    gap: 14,
+  },
+  agendaHead: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    flexWrap: "wrap",
+  },
+  agendaKicker: {
+    fontFamily: "'Itim', cursive",
+    fontSize: 13,
+    fontWeight: 700,
+    color: "var(--accent-color)",
+    marginBottom: 2,
+  },
+  agendaTitle: {
+    fontFamily: "'Itim', cursive",
+    fontSize: 20,
+    fontWeight: 700,
+    color: "var(--ink)",
+    margin: 0,
+  },
+  agendaAddBtn: {
+    fontFamily: "'Itim', cursive",
+    fontSize: 14,
+    fontWeight: 700,
+    color: "#FFFDF8",
+    background: "var(--accent-color)",
+    border: "2px solid var(--ink)",
+    borderRadius: 999,
+    padding: "7px 16px",
+    boxShadow: "2px 2px 0 0 var(--ink)",
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+  },
+  agendaList: {
+    margin: 0,
+    padding: 0,
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
+  },
+  agendaItem: {
+    width: "100%",
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    textAlign: "left",
+    fontFamily: "'Itim', cursive",
+    color: "var(--ink)",
+    background: "var(--bg-surface)",
+    border: "1.5px solid var(--ink-faint)",
+    borderRadius: 14,
+    padding: "10px 12px",
+    cursor: "pointer",
+    boxSizing: "border-box",
+  },
+  agendaTime: {
+    flex: "0 0 74px",
+    fontSize: 13,
+    fontWeight: 700,
+    color: "var(--ink-soft)",
+    textAlign: "right",
+  },
+  agendaBar: {
+    flex: "0 0 4px",
+    alignSelf: "stretch",
+    borderRadius: 4,
+  },
+  agendaBody: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 2,
+    minWidth: 0,
+    flex: 1,
+  },
+  agendaItemTitle: {
+    fontSize: 15.5,
+    fontWeight: 700,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  },
+  agendaItemSub: {
+    fontSize: 12.5,
+    color: "var(--ink-faint)",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  },
+  agendaEmpty: {
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    padding: "24px 0",
+    minHeight: 120,
+    fontFamily: "'Itim', cursive",
+    fontSize: 15,
+    color: "var(--ink-faint)",
   },
 };

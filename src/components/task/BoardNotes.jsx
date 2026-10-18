@@ -290,6 +290,15 @@ export default function BoardNotes({ boardId, initialBlocks }) {
         .note-card:focus-within .note-card-tools { opacity: 1; }
         .note-card { transition: transform 120ms ease, box-shadow 120ms ease; }
         .note-card:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 0 var(--ink); }
+        .note-quick { display: grid !important; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; }
+        .note-quick input { min-width: 0 !important; }
+        @media (max-width: 560px) {
+          .note-quick { grid-template-columns: minmax(0, 1fr) !important; border-radius: 20px !important; padding: 10px !important; gap: 10px !important; }
+          .note-quick > div:first-child { display: grid !important; grid-template-columns: 1fr 1fr; }
+          .note-quick > div:first-child button { text-align: center; padding: 7px 10px !important; }
+          .note-quick input { width: 100%; box-sizing: border-box; border: 1.5px solid var(--ink-faint) !important; border-radius: 12px !important; padding: 10px 12px !important; }
+          .note-quick .doodle-btn { width: 100%; padding: 10px 18px !important; }
+        }
         .note-quick:focus-within { border-color: var(--ink) !important; box-shadow: 2px 2px 0 0 var(--ink); }
         @media (hover: none) { .note-card .note-card-tools { opacity: 1; } }
 
