@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import GlobalStyles from "../../components/common/GlobalStyles";
 import DogHero from "../../components/mockups/DogHero";
@@ -24,6 +24,15 @@ export default function DoodleLoginPage() {
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+
+  // The backend sends the browser back to "/?oauthError=1" when a social
+  // sign-in fails (provider refused, or the verification email couldn't be
+  // sent) — without this the page just looked like nothing happened.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("oauthError")) {
+      setErrors({ form: "เข้าสู่ระบบด้วยบัญชีโซเชียลไม่สำเร็จ กรุณาลองใหม่อีกครั้ง หรือเข้าสู่ระบบด้วยอีเมล" });
+    }
+  }, []);
 
   function validate() {
     const next = {};
