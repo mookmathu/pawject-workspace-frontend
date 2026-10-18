@@ -8,7 +8,7 @@ const styles = {
     width: "100%",
     background: "var(--bg-page)",
     backgroundImage:
-      "radial-gradient(#00000012 1px, transparent 1px), radial-gradient(#00000012 1px, transparent 1px)",
+      "radial-gradient(color-mix(in srgb, var(--ink) 8%, transparent) 1px, transparent 1px), radial-gradient(color-mix(in srgb, var(--ink) 8%, transparent) 1px, transparent 1px)",
     backgroundSize: "24px 24px",
     backgroundPosition: "0 0, 12px 12px",
     display: "flex",

@@ -53,6 +53,14 @@ export default function GlobalStyles() {
         --pw-charcoal: #F6EFE6;
       }
 
+      /* Dark-mode fixes for assets/colors that are not driven by the CSS vars */
+      :root[data-theme="dark"] img[alt="seen"],
+      :root[data-theme="dark"] img[alt="Close eye"] { filter: invert(1); }
+      :root[data-theme="dark"] .social-btn { background: #FFFDF8 !important; }
+      :root[data-theme="dark"] .social-btn svg { fill: #24292F; }
+      :root[data-theme="dark"] .doodle-input { color: var(--ink); }
+      :root[data-theme="dark"] .doodle-input::placeholder { color: var(--ink-faint); }
+
       * { box-sizing: border-box; }
 
       .doodle-btn {

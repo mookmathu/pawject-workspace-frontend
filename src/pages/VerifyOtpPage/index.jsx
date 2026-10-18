@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import GlobalStyles from "../../components/common/GlobalStyles";
+import ThemeToggle from "../../components/common/ThemeToggle";
 import styles from "./styles";
 import { verifyOtp, resendOtp } from "../../lib/api";
 
@@ -128,6 +129,7 @@ export default function VerifyOtpPage() {
     return (
         <div style={styles.page} className="auth-page">
             <GlobalStyles />
+      <ThemeToggle />
             <div style={styles.card} className="card-clean otp-card">
                 <div style={styles.brandRow}>
                     <span style={styles.brandDot} />
