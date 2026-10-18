@@ -16,6 +16,7 @@ import TaskPage from "./pages/TaskPage";
 import ChatPage from "./pages/ChatPage";
 import CalendarPage from "./pages/CalendarPage";
 import ProfilePage from "./pages/ProfilePage";
+import { PrivacyPolicyPage, DataDeletionPage } from "./pages/LegalPage";
 
 function App() {
   useEffect(() => {
@@ -34,6 +35,8 @@ function App() {
           <Route path="/oauth-callback" element={<OAuthCallbackPage />} />
           <Route path="/complete-profile" element={<CompleteProfilePage />} />
           <Route path="/welcome" element={<WelcomePage />} />
+          <Route path="/privacy" element={<PrivacyPolicyPage />} />
+          <Route path="/data-deletion" element={<DataDeletionPage />} />
 
           {/* Logged-in pages share one AppLayout (header + shell) instead of
               each page mounting its own — see AppLayout.jsx for why. */}
