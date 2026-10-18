@@ -1,7 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import GlobalStyles from "../../components/common/GlobalStyles";
-import ThemeToggle from "../../components/common/ThemeToggle";
 import { PawPrint } from "../../components/mockups/DogSVG";
 
 const CONTACT_EMAIL = "mathuradamook@gmail.com";
@@ -31,7 +30,6 @@ function Shell({ title, children }) {
   return (
     <div style={wrap}>
       <GlobalStyles />
-      <ThemeToggle />
       <div style={card}>
         <Link
           to="/"

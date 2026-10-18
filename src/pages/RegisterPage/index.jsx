@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import GlobalStyles from "../../components/common/GlobalStyles";
-import ThemeToggle from "../../components/common/ThemeToggle";
 import DogHero from "../../components/mockups/DogHero";
 import { GoogleIcon, GithubIcon, FacebookIcon } from "../../components/common/icons";
 import styles from "./styles";
@@ -186,7 +185,6 @@ export default function RegisterPage() {
     return (
         <div style={styles.page} className="auth-page">
             <GlobalStyles />
-      <ThemeToggle />
 
             {/* LEFT: floating register card */}
             <div style={styles.card} className="card-clean auth-card">

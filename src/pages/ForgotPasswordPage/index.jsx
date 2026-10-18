@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import GlobalStyles from "../../components/common/GlobalStyles";
-import ThemeToggle from "../../components/common/ThemeToggle";
 import styles from "../LoginPage/styles";
 import { forgotPassword } from "../../lib/api";
 
@@ -39,7 +38,6 @@ export default function ForgotPasswordPage() {
   return (
     <div style={styles.page} className="auth-page">
       <GlobalStyles />
-      <ThemeToggle />
       <div style={styles.card} className="card-clean auth-card">
         <div style={styles.brandRow}>
           <span style={styles.brandDot} />

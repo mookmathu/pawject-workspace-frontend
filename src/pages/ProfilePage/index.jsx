@@ -1,11 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useTheme, THEME_PRESETS, DEFAULT_ACCENT } from "../../lib/ThemeContext";
 import {
   getMe,
   updateProfile,
   uploadAvatar,
-  updateTheme,
   deleteAccount,
   resolveAvatarUrl,
   getMyActivity,
@@ -46,7 +44,6 @@ function persistUser(user) {
 
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const { accentColor, setAccentColor } = useTheme();
 
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
@@ -78,10 +75,6 @@ export default function ProfilePage() {
   const [privacySaving, setPrivacySaving] = useState(false);
   const [privacyError, setPrivacyError] = useState("");
 
-  // --- theme ---
-  const [customHex, setCustomHex] = useState(accentColor);
-  const [themeSaving, setThemeSaving] = useState(false);
-
   // --- delete account ---
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deletePassword, setDeletePassword] = useState("");
@@ -100,10 +93,6 @@ export default function ProfilePage() {
         setBio(user.bio || "");
         setHiddenFields(Array.isArray(user.hiddenFields) ? user.hiddenFields : []);
         persistUser(user);
-        if (user.themeColor) {
-          setAccentColor(user.themeColor);
-          setCustomHex(user.themeColor);
-        }
       } catch (err) {
         setErrors({ form: err.message });
       } finally {
@@ -224,21 +213,6 @@ export default function ProfilePage() {
       setPrivacyError(err.message);
     } finally {
       setPrivacySaving(false);
-    }
-  }
-
-  async function applyTheme(color) {
-    setCustomHex(color);
-    setAccentColor(color); // instant, site-wide preview
-    setThemeSaving(true);
-    try {
-      const { user: updated } = await updateTheme(color);
-      setUser(updated);
-      persistUser(updated);
-    } catch {
-      // theme still applies locally even if saving it to the account fails
-    } finally {
-      setThemeSaving(false);
     }
   }
 
@@ -451,7 +425,6 @@ export default function ProfilePage() {
                 {[
                   { id: "info", label: "👤 ข้อมูลส่วนตัว" },
                   { id: "privacy", label: "🔒 ความเป็นส่วนตัว" },
-                  { id: "theme", label: "🎨 ธีมสี" },
                   { id: "mood", label: "💭 อารมณ์รายวัน" },
                   { id: "account", label: "⚠️ บัญชี" },
                 ].map((t) => (
@@ -616,63 +589,6 @@ export default function ProfilePage() {
                   <br />
                   อีเมลและวิธีเข้าสู่ระบบเป็นข้อมูลบัญชีส่วนตัว ไม่แสดงต่อผู้ใช้คนอื่นอยู่แล้วไม่ว่ากรณีใด
                 </p>
-              </div>
-            </section>
-              )}
-              {tab === "theme" && (
-            <section style={styles.section}>
-              <h2 style={styles.sectionTitle}>สีธีมเว็บ</h2>
-              <div style={styles.card}>
-                <div style={styles.swatchGrid}>
-                  {THEME_PRESETS.map((preset) => (
-                    <button
-                      key={preset.value}
-                      type="button"
-                      title={preset.name}
-                      onClick={() => applyTheme(preset.value)}
-                      style={{ ...styles.swatchBtn, background: preset.value }}
-                    >
-                      {accentColor.toLowerCase() === preset.value.toLowerCase() && (
-                        <span style={styles.swatchCheck}>✓</span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-
-                <div style={styles.customColorRow}>
-                  <input
-                    type="color"
-                    value={customHex}
-                    onChange={(e) => applyTheme(e.target.value)}
-                    style={styles.colorSwatchInput}
-                    title="เลือกสีเอง"
-                  />
-                  <input
-                    className="doodle-input"
-                    style={styles.hexInput}
-                    type="text"
-                    value={customHex}
-                    onChange={(e) => setCustomHex(e.target.value)}
-                    onBlur={() => {
-                      if (/^#[0-9A-Fa-f]{6}$/.test(customHex)) {
-                        applyTheme(customHex);
-                      } else {
-                        setCustomHex(accentColor);
-                      }
-                    }}
-                  />
-                  <button
-                    type="button"
-                    className="doodle-btn"
-                    style={styles.cancelBtn}
-                    onClick={() => applyTheme(DEFAULT_ACCENT)}
-                  >
-                    ใช้สีเริ่มต้น
-                  </button>
-                  {themeSaving && <span style={styles.avatarHint}>กำลังบันทึก...</span>}
-                </div>
-
-                <p style={styles.previewNote}>สีนี้จะถูกใช้กับปุ่มและองค์ประกอบหลักทั่วทั้งเว็บ</p>
               </div>
             </section>
               )}

@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import GlobalStyles from "../../components/common/GlobalStyles";
-import ThemeToggle from "../../components/common/ThemeToggle";
 import styles from "../RegisterPage/styles";
 import THAI_UNIVERSITIES from "../../data/thaiUniversities";
 import { completeProfile, checkUsernameAvailable } from "../../lib/api";
@@ -114,7 +113,6 @@ export default function CompleteProfilePage() {
   return (
     <div style={styles.page} className="auth-page">
       <GlobalStyles />
-      <ThemeToggle />
 
       <div style={styles.card} className="card-clean auth-card">
         <div style={styles.brandRow}>
