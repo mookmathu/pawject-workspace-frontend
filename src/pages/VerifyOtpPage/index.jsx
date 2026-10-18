@@ -10,7 +10,12 @@ const RESEND_COOLDOWN_SECONDS = 30;
 export default function VerifyOtpPage() {
     const navigate = useNavigate();
     const location = useLocation();
-    const email = location.state?.email || "";
+    // Email/password signups arrive with the address in router state; a social
+    // sign-in (Google/GitHub/Facebook) comes back from the provider as a full
+    // page redirect, so there it travels in the query string instead.
+    const query = new URLSearchParams(location.search);
+    const email = location.state?.email || query.get("email") || "";
+    const isSocial = query.get("social") === "1";
 
     const [digits, setDigits] = useState(Array(OTP_LENGTH).fill(""));
     const [error, setError] = useState("");
@@ -94,7 +99,8 @@ export default function VerifyOtpPage() {
             localStorage.setItem("crew_token", token);
             localStorage.setItem("crew_user", JSON.stringify(user));
 
-            navigate("/welcome");
+            // A first-time social sign-in still has to pick a username etc.
+            navigate(user.username ? "/welcome" : "/complete-profile", { replace: true });
         } catch (err) {
             setError(err.message);
         } finally {
@@ -128,11 +134,11 @@ export default function VerifyOtpPage() {
                     <span style={styles.brandText}>Pawject</span>
                 </div>
 
-                <h1 style={styles.heading}>ยืนยันอีเมลของคุณ</h1>
+                <h1 style={styles.heading}>{isSocial ? "ยืนยันการเข้าสู่ระบบ" : "ยืนยันอีเมลของคุณ"}</h1>
                 <p style={styles.subheading}>
                     เราส่งรหัส 6 หลักไปที่ <span style={styles.emailHighlight}>{email}</span>
                     <br />
-                    กรอกรหัสด้านล่างเพื่อยืนยันบัญชี
+                    {isSocial ? "กรอกรหัสด้านล่างเพื่อเข้าสู่ระบบ" : "กรอกรหัสด้านล่างเพื่อยืนยันบัญชี"}
                 </p>
 
                 <form onSubmit={handleSubmit}>
@@ -157,7 +163,7 @@ export default function VerifyOtpPage() {
                     {!error && info && <p style={styles.successText}>{info}</p>}
 
                     <button type="submit" className="doodle-btn" style={styles.verifyBtn} disabled={submitting}>
-                        {submitting ? "กำลังยืนยัน..." : "ยืนยันอีเมล"}
+                        {submitting ? "กำลังยืนยัน..." : isSocial ? "ยืนยันและเข้าสู่ระบบ" : "ยืนยันอีเมล"}
                     </button>
                 </form>
 
