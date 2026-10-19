@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import GlobalStyles from "../../components/common/GlobalStyles";
+import { CardMascot } from "../../components/common/Mascot";
 import styles from "../LoginPage/styles";
 import { forgotPassword } from "../../lib/api";
 
@@ -38,7 +39,8 @@ export default function ForgotPasswordPage() {
   return (
     <div style={styles.page} className="auth-page">
       <GlobalStyles />
-      <div style={styles.card} className="card-clean auth-card">
+      <div style={styles.card} className="card-clean has-mascot auth-card">
+        <CardMascot name="scarf" width={52} anim="wiggle" />
         <div style={styles.brandRow}>
           <span style={styles.brandDot} />
           <span style={styles.brandText}>Pawject</span>

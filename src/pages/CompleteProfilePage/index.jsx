@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import GlobalStyles from "../../components/common/GlobalStyles";
+import { CardMascot } from "../../components/common/Mascot";
 import styles from "../RegisterPage/styles";
 import THAI_UNIVERSITIES from "../../data/thaiUniversities";
 import { completeProfile, checkUsernameAvailable } from "../../lib/api";
@@ -114,7 +115,8 @@ export default function CompleteProfilePage() {
     <div style={styles.page} className="auth-page">
       <GlobalStyles />
 
-      <div style={styles.card} className="card-clean auth-card">
+      <div style={styles.card} className="card-clean has-mascot auth-card">
+        <CardMascot name="puppy" width={66} anim="bounce" />
         <div style={styles.brandRow}>
           <span style={styles.brandDot} />
           <span style={styles.brandText}>Pawject</span>

@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import GlobalStyles from "../../components/common/GlobalStyles";
 import { PawPrint } from "../../components/mockups/DogSVG";
+import { CardMascot } from "../../components/common/Mascot";
 
 const CONTACT_EMAIL = "mathuradamook@gmail.com";
 const UPDATED = "18 ตุลาคม 2569";
@@ -21,6 +22,7 @@ const card = {
   borderRadius: 16,
   boxShadow: "4px 4px 0 0 var(--ink)",
   padding: "28px 24px",
+  position: "relative",
   lineHeight: 1.8,
   fontSize: 17,
 };
@@ -31,6 +33,7 @@ function Shell({ title, children }) {
     <div style={wrap}>
       <GlobalStyles />
       <div style={card}>
+        <CardMascot name="reader" width={74} anim="float" />
         <Link
           to="/"
           style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "var(--ink)", textDecoration: "none" }}

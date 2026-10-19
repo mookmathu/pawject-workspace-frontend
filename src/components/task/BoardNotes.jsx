@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { updateBoardNote } from "../../lib/api";
+import { MascotNote } from "../common/Mascot";
 
 function genId() {
   return `blk-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -484,7 +485,12 @@ export default function BoardNotes({ boardId, initialBlocks }) {
           )}
 
           {isEmpty ? (
-            <p style={styles.emptyText}>ยังไม่มีโน้ต — พิมพ์ในช่องด้านล่างแล้วกด “เพิ่มโน้ต” หรือใช้ปุ่ม “+ ข้อความ” / “+ To-do” เพื่อเริ่มจดได้เลย</p>
+            <MascotNote
+              name="reader"
+              width={92}
+              text="ยังไม่มีโน้ต"
+              sub="พิมพ์ในช่องด้านล่างแล้วกด “เพิ่มโน้ต” หรือใช้ปุ่ม “+ ข้อความ” / “+ To-do” เพื่อเริ่มจดได้เลย"
+            />
           ) : shown.length === 0 ? (
             <p style={styles.emptyText}>ไม่พบโน้ตที่ตรงกับตัวกรอง</p>
           ) : (

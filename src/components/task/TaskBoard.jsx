@@ -20,6 +20,7 @@ import TaskDetailModal from "./TaskDetailModal";
 import BoardNotes from "./BoardNotes";
 import { categoryColor } from "./categoryColor";
 import { consumeTaskJump } from "../../lib/navJump";
+import Mascot, { MascotNote } from "../common/Mascot";
 
 const THAI_MONTHS = [
   "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
@@ -693,7 +694,7 @@ export default function TaskBoard() {
   if (loading && !board) {
     return (
       <div className="task-board" style={styles.board}>
-        <p style={styles.loadingText}>กำลังโหลดบอร์ด...</p>
+        <MascotNote name="glasses" anim="bounce" width={64} text="กำลังโหลดบอร์ด..." />
       </div>
     );
   }
@@ -1278,7 +1279,12 @@ export default function TaskBoard() {
                 )}
               </div>
 
-              {tasks.length === 0 && !isDragOver && <p style={styles.emptyColumn}>ยังไม่มีงานที่นี่</p>}
+              {tasks.length === 0 && !isDragOver && (
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, padding: "10px 0" }}>
+                  <Mascot name="puppy" width={46} anim="float" />
+                  <p style={{ ...styles.emptyColumn, margin: 0 }}>ยังไม่มีงานที่นี่</p>
+                </div>
+              )}
 
               {tasks.map((task) => {
                 const cat = task.categoryRef

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { getWorkspaceBoard, updateTask } from "../../lib/api";
 import { useWorkspaces } from "../../lib/WorkspacesContext";
 import { setTaskJump } from "../../lib/navJump";
+import { MascotNote } from "../../components/common/Mascot";
 
 const TEAM_KEY = "crew_dashboard_team";
 const DAY = 24 * 60 * 60 * 1000;
@@ -239,7 +240,7 @@ export default function DashboardPage() {
         <DashStyles />
         {header}
         <div className="card-clean" style={S.empty}>
-          <p style={S.emptyText}>ยังไม่มีกลุ่ม — สร้างหรือเข้าร่วมกลุ่มจากหน้า Home เพื่อดูภาพรวมของทีม</p>
+          <MascotNote name="scarf" width={70} text="ยังไม่มีกลุ่ม" sub="สร้างหรือเข้าร่วมกลุ่มจากหน้า Home เพื่อดูภาพรวมของทีม" />
           <button type="button" className="doodle-btn" style={S.emptyBtn} onClick={() => navigate("/home")}>ไปหน้า Home</button>
         </div>
       </div>
@@ -251,7 +252,7 @@ export default function DashboardPage() {
       <div className="dash">
         <DashStyles />
         {header}
-        <p style={S.loadingText}>กำลังโหลดภาพรวม...</p>
+        <MascotNote name="glasses" anim="bounce" width={64} text="กำลังโหลดภาพรวม..." />
       </div>
     );
   }

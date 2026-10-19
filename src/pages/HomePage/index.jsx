@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import shellStyles from "../../components/common/appShellStyles";
-import { BoxOpenIcon } from "../../components/common/dashboardIcons";
 import { useWorkspaces } from "../../lib/WorkspacesContext";
 import { useUserProfile } from "../../lib/UserProfileContext";
 import {
@@ -26,6 +25,7 @@ import { isPopupEnabled, isDismissedToday, todayKey } from "../../lib/mood";
 import MoodPopup from "../../components/mood/MoodPopup";
 import MoodCard from "../../components/mood/MoodCard";
 import { setTaskJump, setChatJump } from "../../lib/navJump";
+import Mascot, { MascotNote } from "../../components/common/Mascot";
 
 function formatTaskDueDate(iso) {
   if (!iso) return null;
@@ -530,7 +530,10 @@ export default function HomePage() {
             {myTasksLoading ? (
               <p style={styles.dashboardEmpty}>กำลังโหลด...</p>
             ) : myTasks.length === 0 ? (
-              <p style={styles.dashboardEmpty}>ไม่มีงานที่ต้องทำตอนนี้ 🎉</p>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <Mascot name="ears" width={64} anim="wiggle" />
+                <p style={{ ...styles.dashboardEmpty, margin: 0 }}>ไม่มีงานที่ต้องทำตอนนี้ 🎉</p>
+              </div>
             ) : (
               <ul style={styles.dashboardList}>
                 {myTasks.slice(0, 5).map((t) => {
@@ -577,7 +580,10 @@ export default function HomePage() {
             {unreadCountsLoading ? (
               <p style={styles.dashboardEmpty}>กำลังโหลด...</p>
             ) : unreadEntries.length === 0 ? (
-              <p style={styles.dashboardEmpty}>อ่านหมดแล้ว ไม่มีข้อความค้าง ☕</p>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <Mascot name="reader" width={58} anim="float" />
+                <p style={{ ...styles.dashboardEmpty, margin: 0 }}>อ่านหมดแล้ว ไม่มีข้อความค้าง ☕</p>
+              </div>
             ) : (
               <ul style={styles.dashboardList}>
                 {unreadEntries.map((entry) => (
@@ -695,7 +701,7 @@ export default function HomePage() {
 
         {groupWorkspaces.length === 0 && !creatingGroup ? (
           <div className="card-clean" style={shellStyles.emptyState}>
-            <BoxOpenIcon />
+            <Mascot name="puppy" width={92} anim="bounce" shadow style={{ marginBottom: 12 }} />
             <p style={shellStyles.emptyStateText}>ยังไม่มี Workspace ที่นี่ — สร้างอันแรกของคุณกันเลย</p>
             <button type="button" className="doodle-btn" style={shellStyles.emptyStateBtn} onClick={() => setCreatingGroup(true)}>
               สร้าง Workspace
@@ -954,7 +960,7 @@ export default function HomePage() {
           {notice && <p style={styles.noticeText}>{notice}</p>}
 
           {friends.length === 0 ? (
-            <p style={styles.emptyText}>ยังไม่มีเพื่อนเลย — ลองพิมพ์ username ด้านบนดูสิ</p>
+            <MascotNote name="puppy" width={70} text="ยังไม่มีเพื่อนเลย" sub="ลองพิมพ์ username ด้านบนดูสิ" />
           ) : (
             <ul style={styles.friendList}>
               {friends.map((f) => (

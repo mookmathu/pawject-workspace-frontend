@@ -109,6 +109,7 @@ export default function GlobalStyles() {
         color: var(--ink);
       }
 
+      .has-mascot { position: relative; }
       .card-clean {
         background: var(--bg-surface);
         border-radius: 20px;

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import styles from "./styles";
 import { resolveAttachmentUrl, resolveAvatarUrl } from "../../lib/api";
 import { useUserProfile } from "../../lib/UserProfileContext";
+import { MascotNote } from "../common/Mascot";
 
 function formatTime(iso) {
   const d = new Date(iso);
@@ -97,7 +98,7 @@ export default function ChatWindow({ target, targetOnline, messages, myUserId, o
   if (!target) {
     return (
       <div className="card-clean chat-window" style={styles.window}>
-        <div style={styles.windowEmpty}>เลือกกลุ่มหรือเพื่อนทางด้านซ้ายเพื่อเริ่มแชท</div>
+        <div style={styles.windowEmpty}><MascotNote name="puppy" width={110} anim="wiggle" text="เลือกกลุ่มหรือเพื่อนทางด้านซ้าย" sub="แล้วเริ่มแชทได้เลย" /></div>
       </div>
     );
   }
@@ -159,9 +160,9 @@ export default function ChatWindow({ target, targetOnline, messages, myUserId, o
 
       <div style={styles.messageList} ref={listRef}>
         {loading ? (
-          <div style={styles.windowEmpty}>กำลังโหลดข้อความ...</div>
+          <div style={styles.windowEmpty}><MascotNote name="puppy" anim="bounce" width={60} text="กำลังโหลดข้อความ..." /></div>
         ) : messages.length === 0 ? (
-          <div style={styles.windowEmpty}>ยังไม่มีข้อความ — ทักทายกันก่อนเลย</div>
+          <div style={styles.windowEmpty}><MascotNote name="ears" width={92} text="ยังไม่มีข้อความ" sub="ทักทายกันก่อนเลย" /></div>
         ) : (
           messages.map((m) => {
             const mine = m.senderId === myUserId;

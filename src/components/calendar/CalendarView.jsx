@@ -5,6 +5,7 @@ import { getWorkspaceBoard, getEvents, createEvent, updateEvent, deleteEvent } f
 import { setTaskJump } from "../../lib/navJump";
 import EventModal from "./EventModal";
 import EventComposerModal from "./EventComposerModal";
+import Mascot from "../common/Mascot";
 
 // Picks readable ink or cream text over a manually-chosen background color
 // (same logic as TaskBoard's — duplicated here since it's tiny and this
@@ -405,7 +406,7 @@ export default function CalendarView() {
 
       {agendaItems.length === 0 ? (
         <div style={styles.agendaEmpty}>
-          <span style={{ fontSize: 34 }}>🐶</span>
+          <Mascot name="artist" width={92} anim="wiggle" shadow />
           <span>{selectedIsToday ? "วันนี้ยังว่าง ไม่มีกำหนดการ" : "วันนี้ไม่มีกำหนดการ"}</span>
         </div>
       ) : (

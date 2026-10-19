@@ -1,5 +1,6 @@
 import React from "react";
 import Dog, { PawPrint } from "./DogSVG";
+import Mascot from "../common/Mascot";
 
 /**
  * Animated park backdrop for the Welcome launcher: drifting clouds, rolling
@@ -37,6 +38,8 @@ const CSS = `
 .dg-ball::after{content:"";position:absolute;left:3px;top:10px;width:16px;height:2.5px;background:var(--ink);opacity:.5;border-radius:2px}
 @keyframes dg-bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-46px)}}
 .dg-bone{position:absolute;bottom:5%;left:calc(50% - 170px);transform:rotate(-14deg)}
+.dg-crew{position:absolute;bottom:4%}
+@media (max-width:820px){.dg-crew{display:none}}
 @media (prefers-reduced-motion: reduce){.dg-cloud,.dg-bird,.dg-h1,.dg-h2,.dg-paw,.dg-ball{animation:none!important}.dg-cloud{transform:translateX(20vw)}.dg-paw{opacity:.45}}
 `;
 
@@ -90,6 +93,15 @@ export default function DogScene() {
       ))}
       <Bone />
       <div className="dg-ball" />
+      <div className="dg-crew" style={{ left: "7%" }}>
+        <Mascot name="reader" width={92} anim="float" />
+      </div>
+      <div className="dg-crew" style={{ right: "7%" }}>
+        <Mascot name="artist" width={104} anim="sway" delay={0.6} />
+      </div>
+      <div className="dg-crew" style={{ right: "22%", bottom: "6%" }}>
+        <Mascot name="puppy" width={58} anim="bounce" delay={0.3} />
+      </div>
       <div className="dg-dog">
         <Dog size={180} />
       </div>

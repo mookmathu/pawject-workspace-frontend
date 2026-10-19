@@ -16,6 +16,7 @@ import TaskPage from "./pages/TaskPage";
 import ChatPage from "./pages/ChatPage";
 import CalendarPage from "./pages/CalendarPage";
 import ProfilePage from "./pages/ProfilePage";
+import NotFoundPage from "./pages/NotFoundPage";
 import { PrivacyPolicyPage, DataDeletionPage } from "./pages/LegalPage";
 
 function App() {
@@ -48,6 +49,7 @@ function App() {
             <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/profile" element={<ProfilePage />} />
           </Route>
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>
