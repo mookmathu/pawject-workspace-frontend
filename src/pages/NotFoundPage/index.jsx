@@ -21,7 +21,7 @@ export default function NotFoundPage() {
       }}
     >
       <GlobalStyles />
-      <Mascot name="scarf" width={150} anim="wiggle" shadow decorative={false} title="ไม่พบหน้านี้" />
+      <Mascot name="huh" width={190} anim="wiggle" shadow decorative={false} title="ไม่พบหน้านี้" />
       <h1 style={{ margin: "14px 0 0", fontSize: 42 }}>404</h1>
       <p style={{ margin: 0, fontSize: 20, color: "var(--ink-soft)" }}>หน้านี้หายไปแล้วหรือไม่เคยมีอยู่เลย…</p>
       <Link to="/" className="doodle-btn" style={{ marginTop: 14, padding: "10px 22px", textDecoration: "none", color: "var(--ink)" }}>

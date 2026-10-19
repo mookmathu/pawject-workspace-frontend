@@ -13,18 +13,20 @@ const pad = (n) => String(n).padStart(2, "0");
 
 const s = {
   wrap: {
-    padding: "16px 18px 18px",
+    padding: 0,
+    overflow: "hidden",
     marginBottom: 20,
     background: "var(--bg-surface)",
     color: "var(--ink)",
-    borderWidth: 2,
+    borderWidth: 2.5,
     borderStyle: "solid",
     borderColor: "var(--ink)",
-    borderRadius: "16px 6px 14px 8px / 8px 14px 6px 16px",
-    boxShadow: "3px 3px 0 0 var(--ink)",
+    borderRadius: "22px 8px 20px 10px / 10px 20px 8px 22px",
+    boxShadow: "5px 5px 0 0 var(--ink)",
   },
-  head: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 12 },
-  title: { margin: 0, fontSize: 20, fontWeight: 700, flex: 1, minWidth: 160 },
+  head: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", padding: "10px 18px", background: "color-mix(in srgb, #F4B8B8 30%, var(--bg-surface))", borderBottom: "2.5px solid var(--ink)" },
+  body: { padding: "14px 18px 18px" },
+  title: { margin: 0, fontSize: 19, fontWeight: 700, flex: 1, minWidth: 160 },
   nav: {
     width: 32,
     height: 32,
@@ -40,7 +42,7 @@ const s = {
   },
   monthLabel: { minWidth: 110, textAlign: "center", fontSize: 16 },
   grid: { display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))", gap: 4 },
-  dow: { textAlign: "center", fontSize: 12.5, color: "var(--ink-faint)" },
+  dow: { textAlign: "center", fontSize: 12.5, color: "var(--ink-soft)", background: "color-mix(in srgb, var(--ink) 7%, var(--bg-surface))", borderRadius: 255, padding: "2px 0" },
   cell: {
     position: "relative",
     aspectRatio: "5 / 4",
@@ -54,7 +56,7 @@ const s = {
     padding: 0,
     minWidth: 0,
     width: "100%",
-    borderRadius: 10,
+    borderRadius: 14,
     borderWidth: 2,
     borderStyle: "solid",
     borderColor: "color-mix(in srgb, var(--ink) 18%, transparent)",
@@ -202,6 +204,7 @@ export default function MoodCalendar() {
         </button>
       </div>
 
+      <div style={s.body}>
       <div style={s.grid}>
         {DOW.map((d) => (
           <span key={d} style={s.dow}>
@@ -251,6 +254,7 @@ export default function MoodCalendar() {
             ? "เดือนนี้ยังไม่มีบันทึก — กดที่วันไหนก็ได้เพื่อเริ่มบันทึก"
             : `บันทึกแล้ว ${logged}/${isCurrent ? Number(today.slice(8)) : daysInMonth} วัน${top ? ` · อารมณ์ที่เจอบ่อยสุดคือ "${top.label}"` : ""}`}
       </p>
+      </div>
 
       {selected && (
         <div style={s.backdrop} onClick={() => setSelected(null)}>

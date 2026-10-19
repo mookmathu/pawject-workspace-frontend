@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "./lib/ThemeContext";
 import AppLayout from "./components/common/AppLayout";
 import LoginPage from "./pages/LoginPage";
@@ -43,6 +43,7 @@ function App() {
               each page mounting its own — see AppLayout.jsx for why. */}
           <Route element={<AppLayout />}>
             <Route path="/home" element={<HomePage />} />
+            <Route path="/groups" element={<Navigate to="/home" replace />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/task" element={<TaskPage />} />
             <Route path="/chat" element={<ChatPage />} />

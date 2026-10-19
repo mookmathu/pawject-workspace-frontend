@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { MascotNote } from "./Mascot";
 import { getUserProfile, resolveAvatarUrl } from "../../lib/api";
 
 function formatJoined(dateStr) {
@@ -59,7 +60,7 @@ export default function UserProfileModal({ userId, onClose }) {
         </button>
 
         {loading ? (
-          <p style={styles.stateText}>กำลังโหลด...</p>
+          <MascotNote name="nap" anim="float" width={120} text="กำลังโหลด..." />
         ) : error ? (
           <p style={{ ...styles.stateText, color: "#E0473E" }}>{error}</p>
         ) : (

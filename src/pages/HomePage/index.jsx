@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import shellStyles from "../../components/common/appShellStyles";
 import { useWorkspaces } from "../../lib/WorkspacesContext";
 import { useUserProfile } from "../../lib/UserProfileContext";
@@ -26,6 +26,8 @@ import MoodPopup from "../../components/mood/MoodPopup";
 import MoodCard from "../../components/mood/MoodCard";
 import { setTaskJump, setChatJump } from "../../lib/navJump";
 import Mascot, { MascotNote } from "../../components/common/Mascot";
+import { CrownIcon, PawPinIcon, CameraIcon, ChatBubbleIcon } from "../../components/common/DoodleIcons";
+import DachFrame from "../../components/common/DachFrame";
 
 function formatTaskDueDate(iso) {
   if (!iso) return null;
@@ -50,14 +52,6 @@ function getStoredUser() {
   } catch {
     return null;
   }
-}
-
-function greeting() {
-  const h = new Date().getHours();
-  if (h < 5) return "ดึกแล้วนะ";
-  if (h < 12) return "สวัสดีตอนเช้า";
-  if (h < 17) return "สวัสดีตอนบ่าย";
-  return "สวัสดีตอนเย็น";
 }
 
 function initialOf(name) {
@@ -122,7 +116,7 @@ function UsernameTagInput({ placeholder, onPick, excludeIds = [], inputRef }) {
 // The workspace's photo, with a camera-icon overlay the owner can click to
 // replace it — same idea as ProfilePage's own avatar uploader, just scoped
 // to one group instead of the account.
-function GroupImage({ workspace, isOwner, onUpload }) {
+function GroupImage({ workspace, isOwner, onUpload, size = 48 }) {
   const fileInputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const imageUrl = resolveAvatarUrl(workspace.imageUrl);
@@ -140,11 +134,11 @@ function GroupImage({ workspace, isOwner, onUpload }) {
   }
 
   return (
-    <div style={styles.groupImageWrap}>
+    <div style={{ ...styles.groupImageWrap, width: size, height: size }}>
       {imageUrl ? (
-        <img src={imageUrl} alt={workspace.name} style={styles.groupImage} />
+        <img src={imageUrl} alt={workspace.name} style={{ ...styles.groupImage, width: size, height: size }} />
       ) : (
-        <span style={styles.groupImagePlaceholder}>{initialOf(workspace.name)}</span>
+        <span style={{ ...styles.groupImagePlaceholder, width: size, height: size, fontSize: Math.round(size * 0.38) }}>{initialOf(workspace.name)}</span>
       )}
       {isOwner && (
         <>
@@ -162,7 +156,7 @@ function GroupImage({ workspace, isOwner, onUpload }) {
             title="เปลี่ยนรูปกลุ่ม"
             aria-label="เปลี่ยนรูปกลุ่ม"
           >
-            {uploading ? "…" : "📷"}
+            {uploading ? "…" : <CameraIcon size={13} style={{ verticalAlign: "middle" }} />}
           </button>
           <input
             ref={fileInputRef}
@@ -179,6 +173,11 @@ function GroupImage({ workspace, isOwner, onUpload }) {
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab = searchParams.get("tab") === "friends" ? "friends" : "groups";
+  function switchTab(next) {
+    setSearchParams(next === "friends" ? { tab: "friends" } : {}, { replace: true });
+  }
   const { openUserProfile } = useUserProfile();
   const { workspaces, loading: workspacesLoading, refreshWorkspaces } = useWorkspaces();
   const [friends, setFriends] = useState([]);
@@ -419,23 +418,6 @@ export default function HomePage() {
     }
   }
 
-  // The three quick-action cards double as shortcuts into the sections
-  // below, instead of being purely decorative like the old static Dashboard
-  // mockup — opening the create-group form, jumping to (and focusing) the
-  // add-friend input, or heading straight to chat.
-  function handleQuickCreateWorkspace() {
-    setCreatingGroup(true);
-    requestAnimationFrame(() => {
-      groupFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-      newGroupInputRef.current?.focus();
-    });
-  }
-
-  function handleQuickInviteFriend() {
-    friendInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-    friendInputRef.current?.focus();
-  }
-
   const groupWorkspaces = workspaces.filter((w) => !w.isPersonal);
   const friendIds = [...friends.map((f) => f.id), ...pendingRequestIds];
 
@@ -454,67 +436,23 @@ export default function HomePage() {
   const totalUnread = unreadEntries.reduce((sum, e) => sum + e.count, 0);
 
   if (loading) {
-    return <p style={styles.loadingText}>กำลังโหลด...</p>;
+    return <MascotNote name="nap" anim="float" width={140} text="กำลังโหลด..." />;
   }
 
   return (
     <>
       {error && <p style={styles.errorText}>{error}</p>}
 
-      {/* --- Hero: greeting + what needs attention + quick actions --- */}
       <style>{`
         .home-card { transition: transform 120ms ease, box-shadow 120ms ease; }
+        @media (max-width: 700px) { .ws-grid { grid-template-columns: 1fr !important; } }
+        .ws-card:hover { box-shadow: 6px 6px 0 0 var(--ink) !important; transform: translate(-2px, -2px) !important; }
         .home-card:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 0 var(--ink); }
         .home-row { transition: background-color 120ms ease; }
         .home-row:hover { background: color-mix(in srgb, var(--accent-color) 12%, var(--bg-surface)) !important; }
-        @media (max-width: 700px) { .home-hero-stats { flex: 1 1 100% !important; grid-template-columns: repeat(4, 1fr) !important; } }
-        @media (max-width: 480px) { .home-hero-stats { grid-template-columns: repeat(2, 1fr) !important; } }
       `}</style>
-      <section className="home-hero" style={styles.hero}>
-        <div style={styles.heroText}>
-          <p style={styles.heroDate}>
-            {new Date().toLocaleDateString("th-TH", { weekday: "long", day: "numeric", month: "long" })}
-          </p>
-          <h1 style={styles.heroTitle}>
-            {greeting()}, {(user?.name || "เพื่อน").split(" ")[0]} 👋
-          </h1>
-          <p style={styles.heroSub}>
-            {myTasksLoading || unreadCountsLoading
-              ? "กำลังดูว่าวันนี้มีอะไรรออยู่..."
-              : myTasks.length === 0 && totalUnread === 0
-                ? "วันนี้ไม่มีงานค้างและไม่มีข้อความรอ — ใช้เวลาให้คุ้มนะ ✨"
-                : `มี ${myTasks.length} งานที่ยังค้างอยู่ และ ${totalUnread} ข้อความที่ยังไม่อ่าน`}
-          </p>
-          <div style={styles.heroActions}>
-            <button type="button" className="doodle-btn" style={styles.heroPrimary} onClick={handleQuickCreateWorkspace}>
-              ⊕ สร้างกลุ่มใหม่
-            </button>
-            <button type="button" style={styles.heroChip} onClick={() => { setJoiningByCode(true); setJoinCodeError(""); }}>
-              🔑 เข้าร่วมด้วยรหัส
-            </button>
-            <button type="button" style={styles.heroChip} onClick={handleQuickInviteFriend}>
-              🤝 เพิ่มเพื่อน
-            </button>
-            <button type="button" style={styles.heroChip} onClick={() => navigate("/chat")}>
-              💬 ไปที่แชท
-            </button>
-          </div>
-        </div>
-        <div className="home-hero-stats" style={styles.heroStats}>
-          {[
-            { icon: "👥", value: groupWorkspaces.length, label: "กลุ่ม" },
-            { icon: "🤝", value: friends.length, label: "เพื่อน" },
-            { icon: "📌", value: myTasksLoading ? "–" : myTasks.length, label: "งานค้าง" },
-            { icon: "💬", value: unreadCountsLoading ? "–" : totalUnread, label: "ยังไม่อ่าน" },
-          ].map((x) => (
-            <div key={x.label} style={styles.heroStat}>
-              <span style={styles.heroStatIcon}>{x.icon}</span>
-              <span style={styles.heroStatValue}>{x.value}</span>
-              <span style={styles.heroStatLabel}>{x.label}</span>
-            </div>
-          ))}
-        </div>
-      </section>
+
+      <DachFrame height={72} style={{ marginBottom: -3, position: "relative", zIndex: 2 }} />
 
       <MoodCard entry={todayMood} onChange={setTodayMood} />
       {moodPopupOpen && <MoodPopup onClose={() => setMoodPopupOpen(false)} onSaved={setTodayMood} />}
@@ -528,11 +466,10 @@ export default function HomePage() {
               {myTasks.length > 0 && <span style={styles.countPill}>{myTasks.length}</span>}
             </div>
             {myTasksLoading ? (
-              <p style={styles.dashboardEmpty}>กำลังโหลด...</p>
+              <MascotNote name="nap" anim="float" width={96} text="กำลังโหลด..." />
             ) : myTasks.length === 0 ? (
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <Mascot name="ears" width={64} anim="wiggle" />
-                <p style={{ ...styles.dashboardEmpty, margin: 0 }}>ไม่มีงานที่ต้องทำตอนนี้ 🎉</p>
+              <div>
+                <MascotNote name="clerk" anim="sway" width={84} text="ยังไม่มีงานที่ต้องทำตอนนี้" sub="เยี่ยมมาก! ไม่มีงานเร่งด่วนในตอนนี้" style={{ padding: "6px 0 2px" }} />
               </div>
             ) : (
               <ul style={styles.dashboardList}>
@@ -578,11 +515,10 @@ export default function HomePage() {
               {totalUnread > 0 && <span style={styles.countPill}>{totalUnread > 99 ? "99+" : totalUnread}</span>}
             </div>
             {unreadCountsLoading ? (
-              <p style={styles.dashboardEmpty}>กำลังโหลด...</p>
+              <MascotNote name="nap" anim="float" width={96} text="กำลังโหลด..." />
             ) : unreadEntries.length === 0 ? (
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <Mascot name="reader" width={58} anim="float" />
-                <p style={{ ...styles.dashboardEmpty, margin: 0 }}>อ่านหมดแล้ว ไม่มีข้อความค้าง ☕</p>
+              <div>
+                <MascotNote name="nap" anim="float" width={132} text="ยังไม่มีข้อความใหม่" sub="พักผ่อนบ้างนะ เดี๋ยวก็มีคนทักมาเอง" style={{ padding: "6px 0 2px" }} />
               </div>
             ) : (
               <ul style={styles.dashboardList}>
@@ -612,6 +548,29 @@ export default function HomePage() {
         </div>
       </section>
 
+
+      <section id="home-groups" style={{ ...shellStyles.section, marginBottom: 14, marginTop: 8 }}>
+        <div style={styles.tabs} role="tablist">
+          {[
+            { id: "groups", label: "กลุ่ม", count: groupWorkspaces.length },
+            { id: "friends", label: "เพื่อน", count: friends.length },
+          ].map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              aria-selected={tab === t.id}
+              onClick={() => switchTab(t.id)}
+              style={{ ...styles.tabBtn, ...(tab === t.id ? styles.tabBtnOn : {}) }}
+            >
+              {t.label} <span style={styles.tabCount}>{t.count}</span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {tab === "groups" && (
+        <>
       {/* --- Work groups section --- */}
       <section style={shellStyles.section}>
         <div style={styles.groupHeaderRow}>
@@ -701,15 +660,15 @@ export default function HomePage() {
 
         {groupWorkspaces.length === 0 && !creatingGroup ? (
           <div className="card-clean" style={shellStyles.emptyState}>
-            <Mascot name="puppy" width={92} anim="bounce" shadow style={{ marginBottom: 12 }} />
+            <Mascot name="house" width={92} anim="float" shadow style={{ marginBottom: 12 }} />
             <p style={shellStyles.emptyStateText}>ยังไม่มี Workspace ที่นี่ — สร้างอันแรกของคุณกันเลย</p>
             <button type="button" className="doodle-btn" style={shellStyles.emptyStateBtn} onClick={() => setCreatingGroup(true)}>
               สร้าง Workspace
             </button>
           </div>
         ) : (
-          <div style={styles.groupsGrid}>
-            {groupWorkspaces.map((ws) => (
+          <div className="ws-grid" style={styles.groupsGrid}>
+            {groupWorkspaces.map((ws, wi) => (
               // A <div role="button"> rather than a real <button> — GroupImage
               // renders its own edit <button> for the owner, and a <button>
               // can't legally contain another <button>.
@@ -717,8 +676,8 @@ export default function HomePage() {
                 key={ws.id}
                 role="button"
                 tabIndex={0}
-                className="card-clean home-card"
-                style={styles.groupCardBtn}
+                className="card-clean home-card ws-card"
+                style={{ ...styles.groupCardBtn, background: `color-mix(in srgb, ${WS_TINTS[wi % WS_TINTS.length]} 30%, var(--bg-surface))` }}
                 onClick={() => setExpandedGroupId(ws.id)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
@@ -727,20 +686,26 @@ export default function HomePage() {
                   }
                 }}
               >
-                <div style={styles.groupCardHeader}>
+                <span style={styles.wsHole} aria-hidden />
+                <span style={styles.wsDeco} aria-hidden>
+                  <Mascot name={WS_DECO[wi % WS_DECO.length]} width={WS_DECO[wi % WS_DECO.length] === "bone" ? 54 : 40} />
+                </span>
+                <div style={styles.wsTop}>
                   <GroupImage
                     workspace={ws}
                     isOwner={ws.ownerId === myUserId}
                     onUpload={(file) => handleUploadGroupImage(ws.id, file)}
+                    size={58}
                   />
-                  <span style={styles.groupCardHeaderInfo}>
-                    <span style={{ ...styles.groupName, margin: 0 }}>{ws.name}</span>
-                    <span style={ws.ownerId === myUserId ? styles.roleHead : styles.roleMember}>
-                      {ws.ownerId === myUserId ? "👑 Head" : "สมาชิก"}
+                  <span style={styles.wsTitleCol}>
+                    <span style={{ ...styles.groupName, fontSize: 19, lineHeight: 1.2, wordBreak: "break-word" }}>{ws.name}</span>
+                    <span style={{ ...(ws.ownerId === myUserId ? styles.roleHead : styles.roleMember), ...styles.wsRole }}>
+                      {ws.ownerId === myUserId ? (<><CrownIcon size={15} style={{ marginRight: 4 }} />Head</>) : "สมาชิก"}
                     </span>
                   </span>
                 </div>
-                <div style={styles.groupCardMeta}>
+                <div style={styles.wsDash} />
+                <div style={styles.wsInfo}>
                   <span style={styles.avatarStack}>
                     {(ws.members || []).slice(0, 4).map((m, i) => (
                       <span key={m.user?.id || i} style={{ ...styles.stackAvatar, marginLeft: i ? -8 : 0 }} title={m.user?.name}>
@@ -755,14 +720,14 @@ export default function HomePage() {
                   </span>
                   <span style={styles.groupMemberCount}>{ws.members.length} สมาชิก</span>
                 </div>
-                <div style={styles.groupCardChips}>
+                <div style={{ ...styles.groupCardChips, justifyContent: "flex-start", marginTop: 10 }}>
                   {(() => {
                     const mine = myTasks.filter((t) => t.workspaceId === ws.id).length;
                     const unread = unreadCounts[`workspace:${ws.id}`] || 0;
                     return (
                       <>
-                        <span style={styles.miniChip}>📌 งานของฉัน {mine}</span>
-                        {unread > 0 && <span style={{ ...styles.miniChip, ...styles.miniChipAlert }}>💬 {unread > 99 ? "99+" : unread}</span>}
+                        <span style={{ ...styles.miniChip, ...styles.wsChip }}><PawPinIcon size={15} style={{ marginRight: 4 }} />งานของฉัน {mine}</span>
+                        {unread > 0 && <span style={{ ...styles.miniChip, ...styles.miniChipAlert }}><ChatBubbleIcon size={14} style={{ marginRight: 4, stroke: "#FFFDF8" }} />{unread > 99 ? "99+" : unread}</span>}
                       </>
                     );
                   })()}
@@ -773,6 +738,11 @@ export default function HomePage() {
         )}
       </section>
 
+        </>
+      )}
+
+      {(
+        <>
       {/* --- Group detail popup — opens on top instead of pushing the grid
           around, so clicking one card never shifts another. --- */}
       {expandedGroupId &&
@@ -947,6 +917,11 @@ export default function HomePage() {
           );
         })()}
 
+        </>
+      )}
+
+      {tab === "friends" && (
+        <>
       {/* --- Friends section --- */}
       <section style={shellStyles.section}>
         <h2 style={shellStyles.sectionTitle}>เพื่อน <span style={styles.titleCount}>{friends.length}</span></h2>
@@ -960,7 +935,7 @@ export default function HomePage() {
           {notice && <p style={styles.noticeText}>{notice}</p>}
 
           {friends.length === 0 ? (
-            <MascotNote name="puppy" width={70} text="ยังไม่มีเพื่อนเลย" sub="ลองพิมพ์ username ด้านบนดูสิ" />
+            <MascotNote name="spotty" anim="wiggle" width={104} text="ยังไม่มีเพื่อนเลย" sub="ลองพิมพ์ username ด้านบนดูสิ" />
           ) : (
             <ul style={styles.friendList}>
               {friends.map((f) => (
@@ -1002,26 +977,47 @@ export default function HomePage() {
           )}
         </div>
       </section>
+        </>
+      )}
     </>
   );
 }
 
+const WS_DECO = ["bone", "ball", "bowl", "frisbee"];
+const WS_TINTS = ["#A9C8F0", "#F6D98F", "#A8D8B9", "#F4B8B8", "#CDBDE8"];
+
 const styles = {
+  backLink: { background: "none", border: "none", padding: 0, marginBottom: 10, cursor: "pointer", fontFamily: "'Itim', cursive", fontSize: 14, color: "var(--ink-soft)" },
+  pageHead: { display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 16, padding: "22px 26px 18px", marginBottom: 18, border: "2.5px solid var(--ink)", borderRadius: "26px 20px 24px 20px / 20px 26px 20px 24px", boxShadow: "4px 4px 0 0 var(--ink)", background: "linear-gradient(120deg, color-mix(in srgb, #A9C8F0 30%, var(--bg-surface)) 0%, color-mix(in srgb, #F7E3C4 34%, var(--bg-surface)) 100%)" },
+  pageTitle: { fontFamily: "'Itim', cursive", fontSize: "clamp(24px, 3vw, 32px)", fontWeight: 700, color: "var(--ink)", margin: "0 0 4px" },
+  pageSub: { fontFamily: "'Itim', cursive", fontSize: 14.5, color: "var(--ink-soft)", margin: 0 },
+  tabs: { display: "inline-flex", gap: 6, padding: 5, marginBottom: 22, background: "color-mix(in srgb, var(--ink) 7%, var(--bg-surface))", border: "1.5px solid color-mix(in srgb, var(--ink) 22%, transparent)", borderRadius: 999 },
+  tabBtn: { fontFamily: "'Itim', cursive", fontSize: 15, fontWeight: 700, color: "var(--ink-soft)", background: "transparent", border: "none", borderRadius: 999, padding: "8px 20px", cursor: "pointer" },
+  tabBtnOn: { color: "#FFFDF8", background: "var(--accent-color)", boxShadow: "0 4px 10px -5px var(--accent-color)" },
+  tabCount: { fontSize: 12, opacity: 0.85, marginLeft: 4 },
   hero: {
     display: "flex",
-    justifyContent: "space-between",
-    alignItems: "stretch",
-    gap: 28,
-    flexWrap: "wrap",
-    padding: "28px 30px",
-    marginBottom: 32,
-    background: "linear-gradient(135deg, color-mix(in srgb, var(--accent-color) 16%, var(--bg-surface)) 0%, color-mix(in srgb, #F4B740 16%, var(--bg-surface)) 100%)",
+    justifyContent: "flex-start",
+    alignItems: "center",
+    gap: 24,
+    padding: "28px 34px 30px 26px",
+    minHeight: 196,
+    marginBottom: 20,
+    background: "linear-gradient(120deg, color-mix(in srgb, #A9C8F0 34%, var(--bg-surface)) 0%, color-mix(in srgb, #F7E3C4 38%, var(--bg-surface)) 55%, color-mix(in srgb, #F4C6C0 30%, var(--bg-surface)) 100%)",
     border: "2.5px solid var(--ink)",
     borderRadius: "30px 24px 28px 24px / 24px 30px 24px 28px",
     boxShadow: "5px 5px 0 0 var(--ink)",
     boxSizing: "border-box",
   },
-  heroText: { flex: "1 1 340px", minWidth: 0 },
+  heroText: { flex: "1 1 auto", minWidth: 0, position: "relative", zIndex: 2 },
+  statsGrid: { display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 20 },
+  statCard: { display: "flex", alignItems: "center", gap: 12, textAlign: "left", fontFamily: "'Itim', cursive", color: "var(--ink)", border: "2px solid var(--ink)", borderRadius: 18, padding: "14px 14px", boxShadow: "3px 3px 0 0 var(--ink)", boxSizing: "border-box", minWidth: 0 },
+  statIcon: { flex: "none", width: 46, height: 46, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 },
+  statText: { display: "flex", flexDirection: "column", minWidth: 0, flex: 1 },
+  statLabel: { fontSize: 13.5, fontWeight: 700, lineHeight: 1.2 },
+  statValue: { fontSize: 28, fontWeight: 700, lineHeight: 1.15 },
+  statSub: { fontSize: 11.5, color: "var(--ink-soft)", lineHeight: 1.2 },
+  statArrow: { flex: "none", width: 24, height: 24, borderRadius: "50%", border: "1.5px solid", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, lineHeight: 1, paddingBottom: 2 },
   heroDate: { fontFamily: "'Itim', cursive", fontSize: 13.5, color: "var(--ink-soft)", margin: "0 0 4px" },
   heroTitle: { fontFamily: "'Itim', cursive", fontSize: "clamp(26px, 3.4vw, 36px)", fontWeight: 700, color: "var(--ink)", margin: "0 0 6px", lineHeight: 1.2 },
   heroSub: { fontFamily: "'Itim', cursive", fontSize: 15, color: "var(--ink-soft)", margin: "0 0 18px" },
@@ -1034,8 +1030,8 @@ const styles = {
   heroStatValue: { fontFamily: "'Itim', cursive", fontSize: 26, fontWeight: 700, color: "var(--ink)", lineHeight: 1.15 },
   heroStatLabel: { fontFamily: "'Itim', cursive", fontSize: 12, color: "var(--ink-soft)" },
 
-  attnTasks: { background: "color-mix(in srgb, #E0473E 5%, var(--bg-surface))" },
-  attnChat: { background: "color-mix(in srgb, var(--accent-color) 6%, var(--bg-surface))" },
+  attnTasks: { background: "color-mix(in srgb, #4F83CC 9%, var(--bg-surface))" },
+  attnChat: { background: "color-mix(in srgb, #9A74B8 9%, var(--bg-surface))" },
   attnHead: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 },
   countPill: { fontFamily: "'Itim', cursive", fontSize: 12, fontWeight: 700, color: "#FFFDF8", background: "var(--accent-color)", borderRadius: 999, padding: "1px 10px", minWidth: 20, textAlign: "center" },
   urgencyDot: { width: 8, height: 8, borderRadius: "50%", flexShrink: 0 },
@@ -1050,7 +1046,7 @@ const styles = {
   groupCardMeta: { display: "flex", alignItems: "center", gap: 10, marginTop: 14 },
   avatarStack: { display: "flex", alignItems: "center" },
   stackAvatar: { width: 26, height: 26, borderRadius: "50%", background: "var(--accent-color)", color: "#FFFDF8", border: "2px solid var(--bg-surface)", boxShadow: "0 0 0 1px var(--ink)", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" },
-  groupCardChips: { display: "flex", gap: 6, flexWrap: "wrap", marginTop: 12 },
+  groupCardChips: { display: "flex", gap: 6, flexWrap: "wrap", marginTop: 12, justifyContent: "center" },
   miniChip: { fontFamily: "'Itim', cursive", fontSize: 12, color: "var(--ink-soft)", background: "color-mix(in srgb, var(--ink) 7%, var(--bg-surface))", borderRadius: 999, padding: "3px 10px" },
   miniChipAlert: { color: "#FFFDF8", background: "var(--accent-color)", fontWeight: 700 },
   roleHead: { fontFamily: "'Itim', cursive", fontSize: 11.5, fontWeight: 700, color: "var(--ink)", background: "color-mix(in srgb, #F4B740 35%, var(--bg-surface))", borderRadius: 999, padding: "1px 9px" },
@@ -1358,8 +1354,8 @@ const styles = {
 
   groupsGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-    gap: 16,
+    gridTemplateColumns: "repeat(auto-fill, minmax(260px, 320px))",
+    gap: 20,
   },
   // The collapsed card itself is a button — clicking anywhere on it opens
   // the group's detail popup (see modalOverlay/modalSheet below). It no
@@ -1369,12 +1365,25 @@ const styles = {
     width: "100%",
     textAlign: "left",
     background: "var(--bg-surface)",
-    border: "2px solid var(--ink)",
-    padding: "20px 22px",
+    borderStyle: "solid",
+    borderColor: "var(--ink)",
+    position: "relative",
+    padding: "18px 20px 18px",
     boxSizing: "border-box",
     cursor: "pointer",
     fontFamily: "inherit",
+    borderWidth: 2.5,
+    borderRadius: "22px 8px 20px 10px / 10px 20px 8px 22px",
+    boxShadow: "4px 4px 0 0 var(--ink)",
   },
+  wsHole: { position: "absolute", top: 10, left: "50%", marginLeft: -7, width: 14, height: 14, borderRadius: "50%", background: "var(--bg-page)", border: "2px solid var(--ink)" },
+  wsDeco: { position: "absolute", right: 12, bottom: 10, opacity: 0.95, pointerEvents: "none", transform: "rotate(-10deg)" },
+  wsTop: { display: "flex", alignItems: "center", gap: 12, paddingTop: 14 },
+  wsTitleCol: { display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 4, minWidth: 0, flex: 1 },
+  wsRole: { border: "1.5px solid var(--ink)", display: "inline-flex", alignItems: "center" },
+  wsDash: { borderTop: "2px dashed color-mix(in srgb, var(--ink) 40%, transparent)", margin: "14px 0 12px" },
+  wsInfo: { display: "flex", alignItems: "center", gap: 10 },
+  wsChip: { background: "var(--bg-surface)", border: "1.5px solid var(--ink)", display: "inline-flex", alignItems: "center" },
   groupCardHeader: {
     display: "flex",
     alignItems: "center",

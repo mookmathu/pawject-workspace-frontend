@@ -694,7 +694,7 @@ export default function TaskBoard() {
   if (loading && !board) {
     return (
       <div className="task-board" style={styles.board}>
-        <MascotNote name="glasses" anim="bounce" width={64} text="กำลังโหลดบอร์ด..." />
+        <MascotNote name="nap" anim="float" width={140} text="กำลังโหลดบอร์ด..." />
       </div>
     );
   }

@@ -19,6 +19,23 @@ import scarfLine from "../../assets/mascots/scarf-line.png";
 import scarfFill from "../../assets/mascots/scarf-fill.png";
 import scarfBody from "../../assets/mascots/scarf-body.png";
 
+import doggo_bowl from "../../assets/doggo/bowl.png";
+import doggo_dachshund from "../../assets/doggo/dachshund.png";
+import doggo_huh from "../../assets/doggo/huh.png";
+import doggo_ball from "../../assets/doggo/ball.png";
+import doggo_bone from "../../assets/doggo/bone.png";
+import doggo_frisbee from "../../assets/doggo/frisbee.png";
+import doggo_house from "../../assets/doggo/house.png";
+import doggo_nap from "../../assets/doggo/nap.png";
+import doggo_barista from "../../assets/doggo/barista.png";
+import doggo_clerk from "../../assets/doggo/clerk.png";
+import doggo_music from "../../assets/doggo/music.png";
+import doggo_spotty from "../../assets/doggo/spotty.png";
+import doggo_scout from "../../assets/doggo/scout.png";
+import doggo_cheer from "../../assets/doggo/cheer.png";
+import doggo_pup from "../../assets/doggo/pup.png";
+import doggo_bald from "../../assets/doggo/bald.png";
+
 /**
  * The Pawject crew — six hand-drawn characters used across the site.
  *
@@ -46,6 +63,23 @@ const ART = {
   glasses: { line: glassesLine, body: glassesBody, fill: glassesFill, ratio: 520 / 311, label: "หมาใส่แว่น" },
   artist: { line: artistLine, body: artistBody, fill: artistFill, ratio: 455 / 520, label: "หมาศิลปิน" },
   scarf: { line: scarfLine, body: scarfBody, fill: scarfFill, ratio: 480 / 320, label: "หมาผ้าพันคอ" },
+  // single-image doodles (transparent PNGs, drawn on their own)
+  bowl: { single: doggo_bowl, ratio: 0.5214, label: "ชามอาหารหมา" },
+  dachshund: { single: doggo_dachshund, ratio: 3.0435, label: "หมาตัวยาว" },
+  huh: { single: doggo_huh, ratio: 1.02, label: "หมางง" },
+  ball: { single: doggo_ball, ratio: 0.9973, label: "ลูกเทนนิส" },
+  bone: { single: doggo_bone, ratio: 0.535, label: "กระดูก" },
+  frisbee: { single: doggo_frisbee, ratio: 0.7089, label: "จานร่อน" },
+  house: { single: doggo_house, ratio: 1.22, label: "บ้านหมา" },
+  nap: { single: doggo_nap, ratio: 0.5929, label: "หมานอนพัก" },
+  barista: { single: doggo_barista, ratio: 1.5217, label: "หมาริน" },
+  clerk: { single: doggo_clerk, ratio: 1.5686, label: "หมาถือกระดาษ" },
+  music: { single: doggo_music, ratio: 1.7073, label: "หมาฟังเพลง" },
+  spotty: { single: doggo_spotty, ratio: 0.975, label: "หมาลายจุด" },
+  scout: { single: doggo_scout, ratio: 1.3146, label: "หมาผ้าพันคอ" },
+  cheer: { single: doggo_cheer, ratio: 0.6911, label: "หน้าหมา" },
+  pup: { single: doggo_pup, ratio: 0.7982, label: "หน้าลูกหมา" },
+  bald: { single: doggo_bald, ratio: 0.7607, label: "หมา Bald & Proud" },
 };
 
 export const MASCOT_NAMES = Object.keys(ART);
@@ -53,6 +87,8 @@ export const MASCOT_NAMES = Object.keys(ART);
 const CSS = `
 .mascot{position:relative;display:inline-block;flex:none;line-height:0;user-select:none;-webkit-tap-highlight-color:transparent;transform-origin:50% 90%}
 .mascot-fill,.mascot-body,.mascot-line{position:absolute;inset:0;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:100% 100%;mask-size:100% 100%}
+.mascot-single{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none}
+:root[data-theme="dark"] .mascot-single{filter:drop-shadow(0 0 1px rgba(255,255,255,.95)) drop-shadow(0 0 1px rgba(255,255,255,.6))}
 .mascot-fill{background:#FFFEFC}
 .mascot-body{background:#353B46}
 .mascot-line{background:var(--ink)}
@@ -141,9 +177,15 @@ export default function Mascot({
     >
       {shadow && <span className="mascot-shadow" />}
       <span className="mascot-inner" style={inner}>
-        <span className="mascot-fill" style={maskFor(art.fill)} />
-        <span className="mascot-body" style={maskFor(art.body)} />
-        <span className="mascot-line" style={maskFor(art.line)} />
+        {art.single ? (
+          <img className="mascot-single" src={art.single} alt="" draggable={false} />
+        ) : (
+          <>
+            <span className="mascot-fill" style={maskFor(art.fill)} />
+            <span className="mascot-body" style={maskFor(art.body)} />
+            <span className="mascot-line" style={maskFor(art.line)} />
+          </>
+        )}
       </span>
     </span>
   );

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import Mascot, { MascotNote } from "../../components/common/Mascot";
 import { useNavigate } from "react-router-dom";
 import {
   getMe,
@@ -7,11 +8,7 @@ import {
   deleteAccount,
   resolveAvatarUrl,
   getMyActivity,
-  getMyTasks,
-  getFriends,
 } from "../../lib/api";
-import { useWorkspaces } from "../../lib/WorkspacesContext";
-import { setTaskJump } from "../../lib/navJump";
 import ActivityHeatmap from "../../components/profile/ActivityHeatmap";
 import MoodCalendar from "../../components/mood/MoodCalendar";
 import { isPopupEnabled, setPopupEnabled } from "../../lib/mood";
@@ -64,9 +61,6 @@ export default function ProfilePage() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [tab, setTab] = useState("info");
   const [moodPopupOn, setMoodPopupOn] = useState(isPopupEnabled);
-  const [myTasks, setMyTasks] = useState([]);
-  const [friendCount, setFriendCount] = useState(null);
-  const { workspaces } = useWorkspaces();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -119,11 +113,6 @@ export default function ProfilePage() {
       cancelled = true;
     };
   }, [activityYear]);
-
-  useEffect(() => {
-    getMyTasks().then((r) => setMyTasks(r.tasks || [])).catch(() => {});
-    getFriends().then((r) => setFriendCount((r.friends || []).length)).catch(() => {});
-  }, []);
 
   useEffect(() => {
     if (!settingsOpen) return undefined;
@@ -247,7 +236,7 @@ export default function ProfilePage() {
   return (
     <>
       {loading ? (
-        <p style={{ color: "var(--ink-soft)" }}>กำลังโหลด...</p>
+        <MascotNote name="nap" anim="float" width={140} text="กำลังโหลด..." />
       ) : (
         <div className="profile-layout" style={styles.layout}>
           <style>{`
@@ -263,6 +252,11 @@ export default function ProfilePage() {
 
           {/* --- sidebar: who you are --- */}
           <aside className="profile-side" style={styles.side}>
+            <div style={styles.sideCover} aria-hidden="true">
+              <span style={{ position: "absolute", left: 14, bottom: 8 }}><Mascot name="bone" width={30} anim="wiggle" /></span>
+              <span style={{ position: "absolute", right: 16, bottom: 6 }}><Mascot name="ball" width={24} anim="bounce" /></span>
+            </div>
+            <div style={styles.sideBody}>
             <div className="profile-avatar-big" style={styles.avatarWrapBig}>
               {avatarSrc && !avatarLoadFailed ? (
                 <img src={avatarSrc} alt="รูปโปรไฟล์" style={styles.avatarImgBig} onError={() => setAvatarLoadFailed(true)} />
@@ -302,16 +296,20 @@ export default function ProfilePage() {
             </button>
 
             <ul style={styles.sideList}>
-              {user?.orgName && <li>🏫 {user.orgName}</li>}
-              {user?.email && <li>✉️ {user.email}</li>}
-              {user?.provider && <li>🔑 {PROVIDER_LABEL[user.provider] || user.provider}</li>}
+              {user?.orgName && <li style={styles.sideItem}>🏫 {user.orgName}</li>}
+              {user?.email && <li style={styles.sideItem}>✉️ {user.email}</li>}
+              {user?.provider && <li style={styles.sideItem}>🔑 {PROVIDER_LABEL[user.provider] || user.provider}</li>}
               {activity?.joinedAt && (
-                <li>
+                <li style={styles.sideItem}>
                   📅 เข้าร่วมเมื่อ{" "}
                   {new Date(activity.joinedAt).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" })}
                 </li>
               )}
             </ul>
+            <span style={{ display: "flex", justifyContent: "center", marginTop: 14 }} aria-hidden="true">
+              <Mascot name="pup" width={92} anim="float" shadow />
+            </span>
+            </div>
           </aside>
 
           {/* --- main column --- */}
@@ -319,98 +317,6 @@ export default function ProfilePage() {
             <ActivityHeatmap data={activity} loading={activityLoading} selectedYear={activityYear} onSelectYear={setActivityYear} />
 
             <MoodCalendar />
-
-            {/* --- overview: what the heatmap can't tell you --- */}
-            {(() => {
-              const now = Date.now();
-              const soon = myTasks.filter((t) => t.dueDate && new Date(t.dueDate).getTime() - now <= 3 * 86400000);
-              const upcoming = myTasks.slice(0, 5);
-              const teams = workspaces.filter((w) => !w.isPersonal);
-              const stat = [
-                { icon: "👥", label: "กลุ่มของฉัน", value: teams.length },
-                { icon: "🤝", label: "เพื่อน", value: friendCount ?? "–" },
-                { icon: "📌", label: "งานที่ยังค้างอยู่", value: myTasks.length },
-                { icon: "⏰", label: "ใกล้/เลยกำหนด", value: soon.length },
-              ];
-              return (
-                <>
-                  <section style={styles.section}>
-                    <h2 style={styles.sectionTitle}>ภาพรวมของฉัน</h2>
-                    <div style={styles.statGrid}>
-                      {stat.map((x) => (
-                        <div key={x.label} style={styles.statTile}>
-                          <span style={styles.statIcon}>{x.icon}</span>
-                          <span style={styles.statValue}>{x.value}</span>
-                          <span style={styles.statLabel}>{x.label}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </section>
-
-                  <div style={styles.twoCol}>
-                    <section style={styles.sectionTight}>
-                      <h2 style={styles.sectionTitle}>งานที่ต้องทำเร็ว ๆ นี้</h2>
-                      <div style={styles.listCard}>
-                        {upcoming.length === 0 && <p style={styles.emptyMini}>ไม่มีงานค้าง — เยี่ยมไปเลย ✨</p>}
-                        {upcoming.map((t) => {
-                          const overdue = t.dueDate && new Date(t.dueDate).getTime() < now;
-                          return (
-                            <button
-                              key={t.id}
-                              type="button"
-                              style={styles.listRow}
-                              onClick={() => {
-                                setTaskJump({ workspaceId: t.workspaceId, taskId: t.id });
-                                navigate("/task");
-                              }}
-                            >
-                              <span style={styles.listMain}>
-                                <b style={styles.listTitle}>{t.title}</b>
-                                <span style={styles.listSub}>{t.workspaceName}</span>
-                              </span>
-                              {t.dueDate && (
-                                <span style={{ ...styles.duePill, ...(overdue ? styles.duePillLate : {}) }}>
-                                  {new Date(t.dueDate).toLocaleDateString("th-TH", { day: "numeric", month: "short" })}
-                                </span>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </section>
-
-                    <section style={styles.sectionTight}>
-                      <h2 style={styles.sectionTitle}>กลุ่มของฉัน</h2>
-                      <div style={styles.listCard}>
-                        {teams.length === 0 && <p style={styles.emptyMini}>ยังไม่ได้อยู่ในกลุ่มไหน</p>}
-                        {teams.map((w) => (
-                          <button
-                            key={w.id}
-                            type="button"
-                            style={styles.listRow}
-                            onClick={() => {
-                              try {
-                                localStorage.setItem("crew_task_active_workspace", w.id);
-                              } catch {
-                                /* fine */
-                              }
-                              navigate("/task");
-                            }}
-                          >
-                            <span style={styles.groupDot}>{(w.name || "?").charAt(0).toUpperCase()}</span>
-                            <span style={styles.listMain}>
-                              <b style={styles.listTitle}>{w.name}</b>
-                              <span style={styles.listSub}>{(w.members || []).length} สมาชิก</span>
-                            </span>
-                            <span style={styles.roleTag}>{w.ownerId === user?.id ? "Head" : "สมาชิก"}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </section>
-                  </div>
-                </>
-              );
-            })()}
           </div>
 
         {settingsOpen && (

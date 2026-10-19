@@ -1,5 +1,5 @@
 import React from "react";
-import Dog, { PawPrint } from "./DogSVG";
+import { PawPrint } from "./DogSVG";
 import Mascot from "../common/Mascot";
 
 /**
@@ -33,27 +33,23 @@ const CSS = `
 @keyframes dg-sway{from{transform:translateX(-10px)}to{transform:translateX(10px)}}
 .dg-paw{position:absolute;opacity:0;animation:dg-step 6s ease-in-out infinite}
 @keyframes dg-step{0%{opacity:0}12%{opacity:.55}60%{opacity:.55}80%,100%{opacity:0}}
-.dg-dog{position:absolute;left:50%;bottom:5%;margin-left:-90px}
-.dg-ball{position:absolute;bottom:6%;left:calc(50% + 120px);width:26px;height:26px;border-radius:50%;background:#F6E7A9;border:2.5px solid var(--ink);animation:dg-bounce 1.3s cubic-bezier(.3,.7,.4,1) infinite}
-.dg-ball::after{content:"";position:absolute;left:3px;top:10px;width:16px;height:2.5px;background:var(--ink);opacity:.5;border-radius:2px}
+.dg-dog{position:absolute;left:50%;bottom:5%;margin-left:-115px}
+.dg-ball{position:absolute;bottom:6%;left:calc(50% + 150px);animation:dg-bounce 1.3s cubic-bezier(.3,.7,.4,1) infinite}
 @keyframes dg-bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-46px)}}
-.dg-bone{position:absolute;bottom:5%;left:calc(50% - 170px);transform:rotate(-14deg)}
+.dg-bone{position:absolute;bottom:5%;left:calc(50% - 190px);transform:rotate(-14deg)}
 .dg-crew{position:absolute;bottom:4%}
+.dg-bone2{position:absolute;left:calc(4% + 140px);bottom:11%;transform:rotate(18deg)}
+.dg-house{position:absolute;right:1.5%;bottom:16%;transform-origin:100% 100%}
+@media (max-width:1700px){.dg-house{transform:scale(.8)}}
+@media (max-width:1450px){.dg-house{transform:scale(.62)}}
+@media (max-width:1180px){.dg-house,.dg-bone2{display:none}}
 @media (max-width:820px){.dg-crew{display:none}}
 @media (prefers-reduced-motion: reduce){.dg-cloud,.dg-bird,.dg-h1,.dg-h2,.dg-paw,.dg-ball{animation:none!important}.dg-cloud{transform:translateX(20vw)}.dg-paw{opacity:.45}}
 `;
 
-const HILL1 = "M0 40 Q120 4 260 28 T520 24 T800 32 T1100 12 T1400 30 V120 H0 Z";
-const HILL2 = "M0 64 Q160 28 340 56 T700 50 T1040 62 T1400 40 V120 H0 Z";
-const HILL3 = "M0 92 Q200 66 420 88 T860 82 T1400 90 V120 H0 Z";
-
-function Bone() {
-  return (
-    <svg className="dg-bone" width="54" height="24" viewBox="0 0 54 24" aria-hidden="true">
-      <path d="M10 6 a5 5 0 1 0 -1 9 a5 5 0 1 0 8 4 H37 a5 5 0 1 0 8 -4 a5 5 0 1 0 -1 -9 a5 5 0 1 0 -7 -3 H17 a5 5 0 1 0 -7 3 Z" fill="#FFF9F2" stroke="var(--ink)" strokeWidth="2.4" strokeLinejoin="round" transform="translate(0 1)" />
-    </svg>
-  );
-}
+const HILL1 = "M0 44 Q150 16 320 34 Q500 54 700 30 Q900 8 1100 28 Q1280 44 1400 24 V120 H0 Z";
+const HILL2 = "M0 70 Q200 40 420 62 Q640 84 860 58 Q1100 34 1400 62 V120 H0 Z";
+const HILL3 = "M0 96 Q220 74 460 90 Q700 106 940 88 Q1180 72 1400 92 V120 H0 Z";
 
 export default function DogScene() {
   const paws = [
@@ -91,19 +87,17 @@ export default function DogScene() {
       {paws.map((p, i) => (
         <PawPrint key={i} className="dg-paw" size={20} color="var(--ink)" style={{ left: p.l, bottom: p.b, transform: `rotate(${p.r}deg)`, animationDelay: `${p.d}s` }} />
       ))}
-      <Bone />
-      <div className="dg-ball" />
-      <div className="dg-crew" style={{ left: "7%" }}>
-        <Mascot name="reader" width={92} anim="float" />
+      <div className="dg-bone"><Mascot name="bone" width={34} anim="none" /></div>
+      <div className="dg-ball"><Mascot name="ball" width={28} anim="none" /></div>
+      <div className="dg-crew" style={{ left: "4%", bottom: "13%" }}>
+        <Mascot name="bowl" width={124} anim="none" />
       </div>
-      <div className="dg-crew" style={{ right: "7%" }}>
-        <Mascot name="artist" width={104} anim="sway" delay={0.6} />
-      </div>
-      <div className="dg-crew" style={{ right: "22%", bottom: "6%" }}>
-        <Mascot name="puppy" width={58} anim="bounce" delay={0.3} />
+      <div className="dg-bone2"><Mascot name="bone" width={40} anim="none" /></div>
+      <div className="dg-house">
+        <Mascot name="house" width={270} anim="none" />
       </div>
       <div className="dg-dog">
-        <Dog size={180} />
+        <Mascot name="spotty" width={230} anim="wiggle" />
       </div>
     </div>
   );

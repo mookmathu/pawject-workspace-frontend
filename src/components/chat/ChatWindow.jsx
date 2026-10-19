@@ -160,7 +160,7 @@ export default function ChatWindow({ target, targetOnline, messages, myUserId, o
 
       <div style={styles.messageList} ref={listRef}>
         {loading ? (
-          <div style={styles.windowEmpty}><MascotNote name="puppy" anim="bounce" width={60} text="กำลังโหลดข้อความ..." /></div>
+          <div style={styles.windowEmpty}><MascotNote name="nap" anim="float" width={120} text="กำลังโหลดข้อความ..." /></div>
         ) : messages.length === 0 ? (
           <div style={styles.windowEmpty}><MascotNote name="ears" width={92} text="ยังไม่มีข้อความ" sub="ทักทายกันก่อนเลย" /></div>
         ) : (

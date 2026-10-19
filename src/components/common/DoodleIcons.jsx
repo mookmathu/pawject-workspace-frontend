@@ -1,61 +1,58 @@
 import React from "react";
 
-// Hand-drawn nav icons (ink outline + a flat accent fill) used on the
-// Welcome launcher instead of emoji.
-const ink = "var(--ink)";
-const line = { fill: "none", stroke: ink, strokeWidth: 2.6, strokeLinecap: "round", strokeLinejoin: "round" };
-const fillOf = (c) => ({ fill: c, stroke: ink, strokeWidth: 2.6, strokeLinejoin: "round" });
+// Small hand-drawn icons (ink outline + flat tint) used instead of emoji.
+const base = (size, style) => ({
+  width: size,
+  height: size,
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "var(--ink)",
+  strokeWidth: 1.8,
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+  "aria-hidden": true,
+  style: { flexShrink: 0, verticalAlign: "-0.2em", ...style },
+});
 
-const ICONS = {
-  home: (
-    <>
-      <path {...fillOf("#E5B94A")} d="M9 23.5L24 9.5l15 14V39c0 .8-.6 1.4-1.4 1.4H10.4C9.6 40.4 9 39.8 9 39z" />
-      <path {...fillOf("#E8956B")} d="M5.5 25.5L24 7.5l18.5 18" fill="none" />
-      <path {...fillOf("#fff")} d="M20 40.4V30c0-.8.6-1.4 1.4-1.4h5.2c.8 0 1.4.6 1.4 1.4v10.4" />
-    </>
-  ),
-  dashboard: (
-    <>
-      <path {...fillOf("#fff")} d="M7 8.5c10-.8 24-.6 34 0 .6 10 .6 21 0 31-10 .8-24 .6-34 0-.6-10-.6-21 0-31z" />
-      <path {...fillOf("#8DB6EA")} d="M13 36V26h6v10zM22 36V16h6v20z" />
-      <path {...fillOf("#E5B94A")} d="M31 36V22h6v14z" />
-    </>
-  ),
-  task: (
-    <>
-      <path {...fillOf("#fff")} d="M8 9c10-.7 22-.7 32 0 .6 10 .6 20 0 30-10 .7-22 .7-32 0-.6-10-.6-20 0-30z" />
-      <path {...line} d="M24 9v30" />
-      <path {...fillOf("#7FBF8E")} d="M12 15h8v7h-8zM12 26h8v6h-8z" />
-      <path {...fillOf("#E5B94A")} d="M28 15h8v9h-8z" />
-    </>
-  ),
-  chat: (
-    <>
-      <path {...fillOf("#8DB6EA")} d="M8 12c10-.9 22-.9 32 0 .8 6.4.8 12.6 0 19-5.4.5-9.4.6-13 .5L17 39.5V31.8c-3.2-.1-6.4-.3-9-.8-.8-6.4-.8-12.6 0-19z" />
-      <path {...line} strokeWidth={2.4} d="M15 19h18M15 25h11" />
-    </>
-  ),
-  calendar: (
-    <>
-      <path {...fillOf("#fff")} d="M7 12c10-.8 24-.8 34 0 .7 9.4.7 19.6 0 28-10 .8-24 .8-34 0-.7-8.4-.7-18.6 0-28z" />
-      <path {...fillOf("#E8956B")} d="M7 12c10-.8 24-.8 34 0l.3 7.5H6.7z" />
-      <path {...line} d="M15 6.5v8M33 6.5v8" />
-      <path {...fillOf("#E5B94A")} d="M13 25h6v5h-6zM22 25h6v5h-6z" />
-      <path {...line} strokeWidth={2.2} d="M13 34h6M22 34h6M31 25h4" />
-    </>
-  ),
-  profile: (
-    <>
-      <circle cx="24" cy="17" r="8" {...fillOf("#E5B94A")} />
-      <path {...fillOf("#8DB6EA")} d="M8 41c1-9 7-14 16-14s15 5 16 14z" />
-    </>
-  ),
-};
-
-export default function DoodleIcon({ name, size = 36 }) {
+export function CrownIcon({ size = 16, style }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 48 48" aria-hidden="true" style={{ display: "block" }}>
-      {ICONS[name]}
+    <svg {...base(size, style)}>
+      <path d="M3.6 8.2 7.6 12 12 5.2 16.4 12 20.4 8.2 18.8 18.2H5.2Z" fill="#F6D98F" />
+      <path d="M5.6 20.4H18.4" />
+      <circle cx="3.6" cy="7.6" r="1.1" fill="var(--bg-surface)" />
+      <circle cx="12" cy="4.6" r="1.1" fill="var(--bg-surface)" />
+      <circle cx="20.4" cy="7.6" r="1.1" fill="var(--bg-surface)" />
+    </svg>
+  );
+}
+
+export function PawPinIcon({ size = 16, style }) {
+  return (
+    <svg {...base(size, style)}>
+      <ellipse cx="12" cy="15.6" rx="4.6" ry="3.8" fill="#F4B8B8" />
+      <ellipse cx="5.8" cy="11" rx="1.8" ry="2.3" fill="#F4B8B8" transform="rotate(-20 5.8 11)" />
+      <ellipse cx="9.4" cy="6.8" rx="1.8" ry="2.4" fill="#F4B8B8" transform="rotate(-8 9.4 6.8)" />
+      <ellipse cx="14.8" cy="6.8" rx="1.8" ry="2.4" fill="#F4B8B8" transform="rotate(8 14.8 6.8)" />
+      <ellipse cx="18.4" cy="11" rx="1.8" ry="2.3" fill="#F4B8B8" transform="rotate(20 18.4 11)" />
+    </svg>
+  );
+}
+
+export function CameraIcon({ size = 14, style }) {
+  return (
+    <svg {...base(size, style)}>
+      <path d="M3.4 8.4c0-.9.7-1.6 1.6-1.6h2.2l1.4-2h6.8l1.4 2H19c.9 0 1.6.7 1.6 1.6v8.4c0 .9-.7 1.6-1.6 1.6H5c-.9 0-1.6-.7-1.6-1.6Z" fill="#A9C8F0" />
+      <circle cx="12" cy="12.6" r="3.4" fill="var(--bg-surface)" />
+      <circle cx="17.4" cy="9.4" r=".6" fill="var(--ink)" />
+    </svg>
+  );
+}
+
+export function ChatBubbleIcon({ size = 16, style }) {
+  return (
+    <svg {...base(size, style)}>
+      <path d="M4.4 5.4h15.2c.9 0 1.6.7 1.6 1.6v8c0 .9-.7 1.6-1.6 1.6H11l-4.6 3.4v-3.4H4.4c-.9 0-1.6-.7-1.6-1.6V7c0-.9.7-1.6 1.6-1.6Z" fill="#CDBDE8" />
+      <path d="M8 11h.01M12 11h.01M16 11h.01" strokeWidth="2.6" />
     </svg>
   );
 }

@@ -252,7 +252,7 @@ export default function DashboardPage() {
       <div className="dash">
         <DashStyles />
         {header}
-        <MascotNote name="glasses" anim="bounce" width={64} text="กำลังโหลดภาพรวม..." />
+        <MascotNote name="nap" anim="float" width={140} text="กำลังโหลดภาพรวม..." />
       </div>
     );
   }

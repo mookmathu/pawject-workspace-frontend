@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { MascotNote } from "../common/Mascot";
 
 const THAI_MONTHS = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
 const DAY_LABELS = { 1: "จ", 3: "พ", 5: "ศ" }; // rows: 0 = Sunday … 6 = Saturday
@@ -122,13 +123,13 @@ export default function ActivityHeatmap({ data, loading, selectedYear, onSelectY
 
   return (
     <div className="profile-activity" style={S.wrap}>
-      <div style={S.main}>
-        <div style={S.titleRow}>
+      <div style={S.card}>
+        <div style={S.head}>
           <h2 style={S.title}>{title}</h2>
           {rolling && (
             <div style={S.years}>
               {[{ id: "6m", label: "6 เดือน" }, { id: "1y", label: "1 ปี" }].map((o) => (
-                <button key={o.id} type="button" onClick={() => setRange(o.id)} style={{ ...S.yearBtn, ...(range === o.id ? S.rangeBtnOn : {}) }}>
+                <button key={o.id} type="button" onClick={() => setRange(o.id)} style={{ ...S.yearBtn, ...(range === o.id ? S.yearBtnOn : {}) }}>
                   {o.label}
                 </button>
               ))}
@@ -149,7 +150,7 @@ export default function ActivityHeatmap({ data, loading, selectedYear, onSelectY
             </div>
           )}
         </div>
-        <div style={S.card}>
+        <div style={S.body}>
           {grid ? (
             <div ref={scrollRef} style={{ overflowX: "auto", opacity: loading ? 0.5 : 1, transition: "opacity 150ms" }}>
               <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: "block", minWidth: short ? 0 : 940 }} role="img" aria-label="ปฏิทินการเข้าใช้งานรายวัน">
@@ -170,8 +171,8 @@ export default function ActivityHeatmap({ data, loading, selectedYear, onSelectY
                     y={TOP + c.r * STEP}
                     width={CELL}
                     height={CELL}
-                    rx="4"
-                    style={{ fill: fillFor(levelOf(c.count)), stroke: hover === c.key ? "var(--ink)" : "none", strokeWidth: 1.2 }}
+                    rx="5"
+                    style={{ fill: fillFor(levelOf(c.count)), stroke: hover === c.key ? "var(--ink)" : "none", strokeWidth: 1.4 }}
                     onMouseEnter={() => setHover(c.key)}
                     onMouseLeave={() => setHover(null)}
                   >
@@ -181,13 +182,13 @@ export default function ActivityHeatmap({ data, loading, selectedYear, onSelectY
               </svg>
             </div>
           ) : (
-            <p style={S.muted}>กำลังโหลดข้อมูลการเข้าใช้งาน...</p>
+            <MascotNote name="nap" anim="float" width={96} text="กำลังโหลดข้อมูลการเข้าใช้งาน..." />
           )}
 
           <div style={S.footer}>
             <div style={S.stats}>
-              <span>🔥 ต่อเนื่องตอนนี้ <b>{data?.currentStreak ?? 0}</b> วัน</span>
-              <span>🏆 ต่อเนื่องนานสุด <b>{data?.longestStreak ?? 0}</b> วัน</span>
+              <span style={S.pill}>🔥 ต่อเนื่องตอนนี้ <b>{data?.currentStreak ?? 0}</b> วัน</span>
+              <span style={S.pill}>🏆 ต่อเนื่องนานสุด <b>{data?.longestStreak ?? 0}</b> วัน</span>
             </div>
             <div style={S.legend} aria-hidden>
               <span>น้อย</span>
@@ -197,35 +198,39 @@ export default function ActivityHeatmap({ data, loading, selectedYear, onSelectY
               <span>มาก</span>
             </div>
           </div>
-          <p style={S.hint}>นับจากวันที่คุณเปิดใช้งาน Pawject (เวลาประเทศไทย) — สีเข้มขึ้นเมื่อใช้งานนานขึ้น</p>
         </div>
       </div>
-
     </div>
   );
 }
 
 const S = {
-  wrap: { marginBottom: 40 },
-  main: { minWidth: 0 },
-  titleRow: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 12 },
-  title: { fontFamily: "'Itim', cursive", fontWeight: 700, fontSize: 20, color: "var(--ink)", margin: 0 },
+  wrap: { marginBottom: 28 },
   card: {
     background: "var(--bg-surface)",
-    border: "2px solid var(--ink)",
-    borderRadius: 18,
-    boxShadow: "4px 4px 0 0 var(--ink)",
-    padding: "18px 20px 14px",
+    border: "2.5px solid var(--ink)",
+    borderRadius: "22px 8px 20px 10px / 10px 20px 8px 22px",
+    boxShadow: "5px 5px 0 0 var(--ink)",
+    overflow: "hidden",
     boxSizing: "border-box",
   },
-  footer: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap", marginTop: 10, fontFamily: "'Itim', cursive", fontSize: 13, color: "var(--ink-soft)" },
-  stats: { display: "flex", gap: 18, flexWrap: "wrap" },
+  head: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    flexWrap: "wrap",
+    padding: "10px 18px",
+    background: "color-mix(in srgb, var(--accent-color) 16%, var(--bg-surface))",
+    borderBottom: "2.5px solid var(--ink)",
+  },
+  title: { fontFamily: "'Itim', cursive", fontWeight: 700, fontSize: 19, color: "var(--ink)", margin: 0, flex: 1, minWidth: 160 },
+  body: { padding: "16px 20px 16px" },
+  footer: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap", marginTop: 12, fontFamily: "'Itim', cursive", fontSize: 13, color: "var(--ink-soft)" },
+  stats: { display: "flex", gap: 8, flexWrap: "wrap" },
+  pill: { padding: "3px 12px", borderRadius: 255, border: "2px dashed color-mix(in srgb, var(--ink) 45%, transparent)", color: "var(--ink)" },
   legend: { display: "flex", alignItems: "center", gap: 4 },
-  legendBox: { width: 12, height: 12, borderRadius: 2.5, display: "inline-block" },
-  hint: { fontFamily: "'Itim', cursive", fontSize: 12, color: "var(--ink-faint)", margin: "8px 0 0" },
-  muted: { fontFamily: "'Itim', cursive", fontSize: 13.5, color: "var(--ink-soft)", margin: 0 },
+  legendBox: { width: 12, height: 12, borderRadius: 4, display: "inline-block" },
   years: { display: "flex", gap: 6, flexWrap: "wrap" },
-  yearBtn: { fontFamily: "'Itim', cursive", fontSize: 14, color: "var(--ink-soft)", background: "transparent", borderWidth: 2, borderStyle: "solid", borderColor: "transparent", borderRadius: 10, padding: "5px 14px", cursor: "pointer" },
-  rangeBtnOn: { background: "color-mix(in srgb, var(--accent-color) 16%, var(--bg-surface))", color: "var(--ink)", fontWeight: 700, borderColor: "var(--ink)" },
+  yearBtn: { fontFamily: "'Itim', cursive", fontSize: 14, color: "var(--ink-soft)", background: "transparent", borderWidth: 2, borderStyle: "solid", borderColor: "transparent", borderRadius: 255, padding: "3px 14px", cursor: "pointer" },
   yearBtnOn: { background: "var(--accent-color)", color: "#FFFDF8", fontWeight: 700, borderColor: "var(--ink)", boxShadow: "2px 2px 0 0 var(--ink)" },
 };
