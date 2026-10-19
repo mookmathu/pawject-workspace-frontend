@@ -5,6 +5,8 @@ import { getWorkspaceBoard, getEvents, createEvent, updateEvent, deleteEvent } f
 import { setTaskJump } from "../../lib/navJump";
 import EventModal from "./EventModal";
 import EventComposerModal from "./EventComposerModal";
+import { StickerIcon } from "./EventStylePicker";
+import { EVENT_LABELS, getLabel, labelSoftBg } from "./eventStyle";
 import Mascot from "../common/Mascot";
 
 // Picks readable ink or cream text over a manually-chosen background color
@@ -331,7 +333,7 @@ export default function CalendarView() {
                       height: 7,
                       borderRadius: "50%",
                       background:
-                        item.type === "task" ? item.data.categoryRef?.color || "var(--accent-color)" : "#6A9BD8",
+                        item.type === "task" ? item.data.categoryRef?.color || "var(--accent-color)" : getLabel(item.data.label).color,
                     }}
                   />
                 ))}
@@ -346,10 +348,16 @@ export default function CalendarView() {
                       type="button"
                       className="cal-event-chip"
                       onClick={() => setExpandedEvent(item.data)}
-                      style={styles.eventChip}
-                      title={item.data.title}
+                      style={{
+                        ...styles.eventChip,
+                        background: labelSoftBg(getLabel(item.data.label).color, 20),
+                        borderLeft: `3px solid ${getLabel(item.data.label).color}`,
+                      }}
+                      title={`${getLabel(item.data.label).name} · ${item.data.title}`}
                     >
-                      • {item.data.title}
+                      {item.data.sticker ? <StickerIcon value={item.data.sticker} size={12} /> : null}
+                      {item.data.sticker ? " " : ""}
+                      {item.data.title}
                     </button>
                   ) : (
                     <button
@@ -388,6 +396,15 @@ export default function CalendarView() {
           );
         })}
       </div>
+
+      <div style={styles.legend} aria-label="ความหมายของสี">
+        {EVENT_LABELS.map((l) => (
+          <span key={l.key} style={styles.legendItem}>
+            <span style={{ ...styles.legendDot, background: l.color }} />
+            {l.name}
+          </span>
+        ))}
+      </div>
     </div>
 
     <section className="card-clean cal-agenda" style={styles.agenda}>
@@ -424,7 +441,8 @@ export default function CalendarView() {
                 timeLabel = "ทั้งวัน";
               }
             }
-            const barColor = isEvent ? "#6A9BD8" : d.categoryRef?.color || "var(--accent-color)";
+            const evLabel = isEvent ? getLabel(d.label) : null;
+            const barColor = isEvent ? evLabel.color : d.categoryRef?.color || "var(--accent-color)";
             return (
               <li key={`${item.type}-${d.id}`} style={{ listStyle: "none" }}>
                 <button
@@ -443,13 +461,31 @@ export default function CalendarView() {
                   <span style={styles.agendaTime}>{timeLabel}</span>
                   <span style={{ ...styles.agendaBar, background: barColor }} />
                   <span style={styles.agendaBody}>
-                    <span style={styles.agendaItemTitle}>{isEvent ? d.title : `☐ ${d.title}`}</span>
+                    <span style={styles.agendaItemTitle}>
+                      {isEvent && d.sticker ? (
+                        <>
+                          <StickerIcon value={d.sticker} size={18} />{" "}
+                        </>
+                      ) : null}
+                      {isEvent ? d.title : `☐ ${d.title}`}
+                    </span>
                     <span style={styles.agendaItemSub}>
-                      {isEvent
-                        ? d.attendees?.length
-                          ? `กิจกรรม · ${d.attendees.length} คนที่ถูกแท็ก`
-                          : "กิจกรรม"
-                        : `งาน · ${d.workspaceName}`}
+                      {isEvent ? (
+                        <>
+                          <span
+                            style={{
+                              ...styles.labelPill,
+                              background: labelSoftBg(evLabel.color, 24),
+                              borderColor: evLabel.color,
+                            }}
+                          >
+                            {evLabel.name}
+                          </span>
+                          {d.attendees?.length ? ` · ${d.attendees.length} คนที่ถูกแท็ก` : ""}
+                        </>
+                      ) : (
+                        `งาน · ${d.workspaceName}`
+                      )}
                     </span>
                   </span>
                 </button>
@@ -608,7 +644,7 @@ const styles = {
   eventChip: {
     fontFamily: "'Itim', cursive",
     fontSize: 11,
-    color: "#2C5F8A",
+    color: "var(--ink)",
     background: "#EAF0FF",
     border: "none",
     borderRadius: 6,
@@ -729,6 +765,27 @@ const styles = {
     minWidth: 0,
     flex: 1,
   },
+  labelPill: {
+    display: "inline-block",
+    fontSize: 11,
+    color: "var(--ink)",
+    border: "1.5px solid",
+    borderRadius: 999,
+    padding: "0 8px",
+    lineHeight: 1.5,
+  },
+  legend: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "6px 14px",
+    alignItems: "center",
+    marginTop: 14,
+    fontFamily: "'Itim', cursive",
+    fontSize: 13,
+    color: "var(--ink-soft)",
+  },
+  legendItem: { display: "inline-flex", alignItems: "center", gap: 6 },
+  legendDot: { width: 10, height: 10, borderRadius: "50%", flex: "none" },
   agendaItemTitle: {
     fontSize: 15.5,
     fontWeight: 700,

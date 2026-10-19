@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { searchUsers } from "../../lib/api";
+import EventStylePicker from "./EventStylePicker";
+import { DEFAULT_LABEL } from "./eventStyle";
 import { DateFields, TimeFields, dateToFields, fieldsToDate, fixRange, rangeMs } from "./DateTimeFields";
 
 /**
@@ -12,6 +14,8 @@ export default function EventComposerModal({ date, onClose, onSubmit }) {
   const [description, setDescription] = useState("");
   const [isAllDay, setIsAllDay] = useState(true);
   const [submitted, setSubmitted] = useState(false);
+  const [label, setLabel] = useState(DEFAULT_LABEL);
+  const [sticker, setSticker] = useState(null);
 
   const [startDateFields, setStartDateFields] = useState(dateToFields(date));
   const [startTimeFields, setStartTimeFields] = useState({ hour: 9, minute: 0 });
@@ -88,6 +92,8 @@ export default function EventComposerModal({ date, onClose, onSubmit }) {
       startDate: startDt.toISOString(),
       endDate: endDt.toISOString(),
       attendeeUsernames: taggedUsers.map((u) => u.username),
+      label,
+      sticker: sticker || undefined,
     });
   }
 
@@ -157,6 +163,8 @@ export default function EventComposerModal({ date, onClose, onSubmit }) {
             </div>
           </div>
         </div>
+
+        <EventStylePicker label={label} sticker={sticker} onLabel={setLabel} onSticker={setSticker} />
 
         {/* Attendees / tagging */}
         <div style={styles.attendeeSection}>

@@ -397,10 +397,10 @@ export function getEvents({ year, month }) {
   return authRequest(`/events?year=${year}&month=${month}`);
 }
 
-export function createEvent({ title, description, isAllDay, startDate, endDate, attendeeUsernames }) {
+export function createEvent({ title, description, isAllDay, startDate, endDate, attendeeUsernames, label, sticker }) {
   return authRequest("/events", {
     method: "POST",
-    body: JSON.stringify({ title, description, isAllDay, startDate, endDate, attendeeUsernames }),
+    body: JSON.stringify({ title, description, isAllDay, startDate, endDate, attendeeUsernames, label, sticker }),
   });
 }
 

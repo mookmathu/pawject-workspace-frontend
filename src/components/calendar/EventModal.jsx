@@ -1,11 +1,37 @@
 import React, { useState, useEffect } from "react";
 import { searchUsers } from "../../lib/api";
+import EventStylePicker from "./EventStylePicker";
+import { StickerIcon } from "./EventStylePicker";
+import { DEFAULT_LABEL, getLabel, labelSoftBg } from "./eventStyle";
 import { DateFields, TimeFields, dateToFields, timeToFields, fieldsToDate, fixRange, rangeMs } from "./DateTimeFields";
 
+const WEEKDAYS = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"];
+const MONTHS = [
+  "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
+  "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม",
+];
+const longDate = (d) => `${WEEKDAYS[d.getDay()]}ที่ ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear() + 543}`;
+const clock = (d) => d.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit", hour12: false });
+const sameDay = (a, b) => a.toDateString() === b.toDateString();
+
+function currentUserId() {
+  try {
+    return JSON.parse(localStorage.getItem("crew_user") || "null")?.id ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export default function EventModal({ event, onClose, onUpdate, onDelete }) {
+  const [mode, setMode] = useState("view");
+  const meId = currentUserId();
+  // If we can't tell who is logged in, don't hide the button; the server still enforces permissions.
+  const canEdit = !event.owner || meId == null || String(event.owner.id) === String(meId);
   const [title, setTitle] = useState(event.title);
   const [description, setDescription] = useState(event.description || "");
   const [isAllDay, setIsAllDay] = useState(event.isAllDay);
+  const [label, setLabel] = useState(event.label || DEFAULT_LABEL);
+  const [sticker, setSticker] = useState(event.sticker || null);
 
   const [startDateFields, setStartDateFields] = useState(dateToFields(new Date(event.startDate)));
   const [startTimeFields, setStartTimeFields] = useState(timeToFields(new Date(event.startDate)));
@@ -58,6 +84,14 @@ export default function EventModal({ event, onClose, onUpdate, onDelete }) {
   const commitStartTime = (v) => commitRange({ startTime: v }, "start");
   const commitEndDate = (v) => commitRange({ endDate: v }, "end");
   const commitEndTime = (v) => commitRange({ endTime: v }, "end");
+  function changeLabel(next) {
+    setLabel(next);
+    onUpdate({ label: next });
+  }
+  function changeSticker(next) {
+    setSticker(next);
+    onUpdate({ sticker: next });
+  }
   useEffect(() => {
     if (!attendeeQuery.trim()) {
       setAttendeeResults([]);
@@ -86,6 +120,80 @@ export default function EventModal({ event, onClose, onUpdate, onDelete }) {
     const next = taggedUsers.filter((u) => u.id !== userId);
     setTaggedUsers(next);
     onUpdate({ attendeeUsernames: next.map((u) => u.username) });
+  }
+
+  if (mode === "view") {
+    const info = getLabel(label);
+    const start = fieldsToDate(startDateFields, isAllDay ? { hour: 0, minute: 0 } : startTimeFields);
+    const end = fieldsToDate(endDateFields, isAllDay ? { hour: 23, minute: 59 } : endTimeFields);
+    const multiDay = !sameDay(start, end);
+    let when;
+    if (isAllDay) {
+      when = multiDay ? `${longDate(start)} – ${longDate(end)}` : `${longDate(start)} · ทั้งวัน`;
+    } else if (multiDay) {
+      when = `${longDate(start)} ${clock(start)} – ${longDate(end)} ${clock(end)}`;
+    } else {
+      when = end.getTime() === start.getTime()
+        ? `${longDate(start)} · ${clock(start)}`
+        : `${longDate(start)} · ${clock(start)} – ${clock(end)}`;
+    }
+    return (
+      <div style={styles.overlay} onClick={onClose}>
+        <div style={styles.sheet} onClick={(e) => e.stopPropagation()}>
+          <button type="button" onClick={onClose} style={styles.closeBtn} title="ปิด">
+            ×
+          </button>
+          <div style={{ ...styles.viewHead, borderLeft: `6px solid ${info.color}` }}>
+            {sticker && (
+              <span style={styles.viewSticker}>
+                <StickerIcon value={sticker} size={44} />
+              </span>
+            )}
+            <div style={{ minWidth: 0 }}>
+              <h2 style={styles.viewTitle}>{title}</h2>
+              <span
+                style={{
+                  ...styles.viewPill,
+                  color: info.color,
+                  background: labelSoftBg(info.color, 16),
+                  border: `1.5px solid ${info.color}`,
+                }}
+              >
+                {info.name}
+              </span>
+            </div>
+          </div>
+
+          <p style={styles.viewWhen}>🗓️ {when}</p>
+
+          {description.trim() && <p style={styles.viewDesc}>{description}</p>}
+
+          {taggedUsers.length > 0 && (
+            <>
+              <p style={styles.inviteHint}>ผู้เกี่ยวข้อง</p>
+              <div style={styles.inviteChips}>
+                {taggedUsers.map((u) => (
+                  <span key={u.id} style={styles.inviteChip}>@{u.username}</span>
+                ))}
+              </div>
+            </>
+          )}
+
+          {event.owner && <p style={{ ...styles.creatorLine, marginTop: 14 }}>สร้างโดย @{event.owner.username}</p>}
+
+          <div style={styles.viewActions}>
+            {canEdit && (
+              <button type="button" onClick={() => setMode("edit")} style={styles.editBtn}>
+                ✏️ แก้ไข
+              </button>
+            )}
+            <button type="button" onClick={onClose} style={styles.ghostBtn}>
+              ปิด
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -140,6 +248,8 @@ export default function EventModal({ event, onClose, onUpdate, onDelete }) {
           </div>
         </div>
 
+        <EventStylePicker label={label} sticker={sticker} onLabel={changeLabel} onSticker={changeSticker} />
+
         <p style={styles.inviteHint}>ผู้เกี่ยวข้อง</p>
         {taggedUsers.length > 0 && (
           <div style={styles.inviteChips}>
@@ -176,15 +286,29 @@ export default function EventModal({ event, onClose, onUpdate, onDelete }) {
 
         <hr style={styles.divider} />
 
-        <button type="button" onClick={onDelete} style={styles.deleteBtn}>
-          ลบกิจกรรมนี้
-        </button>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <button type="button" onClick={() => setMode("view")} style={styles.editBtn}>
+            ✓ เสร็จสิ้น
+          </button>
+          <button type="button" onClick={onDelete} style={styles.deleteBtn}>
+            ลบกิจกรรมนี้
+          </button>
+        </div>
       </div>
     </div>
   );
 }
 
 const styles = {
+  viewHead: { display: "flex", alignItems: "center", gap: 12, paddingLeft: 12, marginBottom: 14, marginRight: 24 },
+  viewSticker: { flexShrink: 0, display: "inline-flex" },
+  viewTitle: { fontFamily: "'Itim', cursive", fontWeight: 700, fontSize: 22, color: "var(--ink)", margin: "0 0 6px", wordBreak: "break-word" },
+  viewPill: { display: "inline-block", fontFamily: "'Itim', cursive", fontSize: 12.5, padding: "2px 10px", borderRadius: 999 },
+  viewWhen: { fontFamily: "'Itim', cursive", fontSize: 15, color: "var(--ink)", margin: "0 0 12px" },
+  viewDesc: { fontFamily: "'Itim', cursive", fontSize: 14.5, color: "var(--ink-soft)", margin: "0 0 4px", whiteSpace: "pre-wrap", wordBreak: "break-word", background: "var(--bg-page, transparent)", border: "1.5px solid #ECE6D8", borderRadius: 10, padding: "10px 12px" },
+  viewActions: { display: "flex", gap: 10, marginTop: 20 },
+  editBtn: { fontFamily: "'Itim', cursive", fontSize: 14, color: "#FFFDF8", background: "var(--accent-color)", border: "2px solid var(--ink)", borderRadius: 10, padding: "8px 18px", cursor: "pointer", boxShadow: "2px 2px 0 0 var(--ink)" },
+  ghostBtn: { fontFamily: "'Itim', cursive", fontSize: 14, color: "var(--ink-soft)", background: "transparent", border: "2px solid #ECE6D8", borderRadius: 10, padding: "8px 18px", cursor: "pointer" },
   overlay: {
     position: "fixed",
     inset: 0,
