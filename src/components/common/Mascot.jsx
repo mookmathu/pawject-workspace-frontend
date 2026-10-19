@@ -2,23 +2,31 @@ import React, { useEffect, useRef, useState } from "react";
 
 import earsLine from "../../assets/mascots/ears-line.png";
 import earsFill from "../../assets/mascots/ears-fill.png";
+import earsBody from "../../assets/mascots/ears-body.png";
 import puppyLine from "../../assets/mascots/puppy-line.png";
 import puppyFill from "../../assets/mascots/puppy-fill.png";
+import puppyBody from "../../assets/mascots/puppy-body.png";
 import readerLine from "../../assets/mascots/reader-line.png";
 import readerFill from "../../assets/mascots/reader-fill.png";
+import readerBody from "../../assets/mascots/reader-body.png";
 import glassesLine from "../../assets/mascots/glasses-line.png";
 import glassesFill from "../../assets/mascots/glasses-fill.png";
+import glassesBody from "../../assets/mascots/glasses-body.png";
 import artistLine from "../../assets/mascots/artist-line.png";
 import artistFill from "../../assets/mascots/artist-fill.png";
+import artistBody from "../../assets/mascots/artist-body.png";
 import scarfLine from "../../assets/mascots/scarf-line.png";
 import scarfFill from "../../assets/mascots/scarf-fill.png";
+import scarfBody from "../../assets/mascots/scarf-body.png";
 
 /**
  * The Pawject crew — six hand-drawn characters used across the site.
  *
- * Each drawing is stored as two alpha masks (outline + body fill) and tinted
- * with CSS variables, so the same artwork follows light/dark mode:
- *   outline -> var(--ink)        body -> var(--bg-surface)
+ * Each drawing is stored as three alpha masks, tinted with CSS colours:
+ *   fill  -> warm white, always (the characters are white all over, in light and dark mode)
+ *   body  -> charcoal outline of the shapes that sit on the white fill
+ *   line  -> loose strokes outside the white shapes (sparkles, whiskers) in var(--ink),
+ *            so they stay visible on a dark background
  *
  *   ears     ลูกหมาหูกาง   (happy, big ears)
  *   puppy    ลูกหมาแลบลิ้น  (loading, small joys)
@@ -32,20 +40,21 @@ import scarfFill from "../../assets/mascots/scarf-fill.png";
  * prefers-reduced-motion.
  */
 const ART = {
-  ears: { line: earsLine, fill: earsFill, ratio: 332 / 480, label: "ลูกหมาหูกาง" },
-  puppy: { line: puppyLine, fill: puppyFill, ratio: 383 / 480, label: "ลูกหมาแลบลิ้น" },
-  reader: { line: readerLine, fill: readerFill, ratio: 520 / 403, label: "หมาอ่านหนังสือ" },
-  glasses: { line: glassesLine, fill: glassesFill, ratio: 520 / 311, label: "หมาใส่แว่น" },
-  artist: { line: artistLine, fill: artistFill, ratio: 455 / 520, label: "หมาศิลปิน" },
-  scarf: { line: scarfLine, fill: scarfFill, ratio: 480 / 320, label: "หมาผ้าพันคอ" },
+  ears: { line: earsLine, body: earsBody, fill: earsFill, ratio: 332 / 480, label: "ลูกหมาหูกาง" },
+  puppy: { line: puppyLine, body: puppyBody, fill: puppyFill, ratio: 383 / 480, label: "ลูกหมาแลบลิ้น" },
+  reader: { line: readerLine, body: readerBody, fill: readerFill, ratio: 520 / 403, label: "หมาอ่านหนังสือ" },
+  glasses: { line: glassesLine, body: glassesBody, fill: glassesFill, ratio: 520 / 311, label: "หมาใส่แว่น" },
+  artist: { line: artistLine, body: artistBody, fill: artistFill, ratio: 455 / 520, label: "หมาศิลปิน" },
+  scarf: { line: scarfLine, body: scarfBody, fill: scarfFill, ratio: 480 / 320, label: "หมาผ้าพันคอ" },
 };
 
 export const MASCOT_NAMES = Object.keys(ART);
 
 const CSS = `
 .mascot{position:relative;display:inline-block;flex:none;line-height:0;user-select:none;-webkit-tap-highlight-color:transparent;transform-origin:50% 90%}
-.mascot-fill,.mascot-line{position:absolute;inset:0;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:100% 100%;mask-size:100% 100%}
-.mascot-fill{background:var(--bg-surface)}
+.mascot-fill,.mascot-body,.mascot-line{position:absolute;inset:0;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:100% 100%;mask-size:100% 100%}
+.mascot-fill{background:#FFFEFC}
+.mascot-body{background:#353B46}
 .mascot-line{background:var(--ink)}
 .mascot.is-flip{transform:scaleX(-1)}
 .mascot-inner{position:absolute;inset:0;transform-origin:50% 92%}
@@ -133,6 +142,7 @@ export default function Mascot({
       {shadow && <span className="mascot-shadow" />}
       <span className="mascot-inner" style={inner}>
         <span className="mascot-fill" style={maskFor(art.fill)} />
+        <span className="mascot-body" style={maskFor(art.body)} />
         <span className="mascot-line" style={maskFor(art.line)} />
       </span>
     </span>
