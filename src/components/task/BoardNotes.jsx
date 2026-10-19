@@ -596,7 +596,7 @@ export default function BoardNotes({ boardId, initialBlocks }) {
             <input
               type="text"
               value={quickText}
-              placeholder="พิมพ์โน้ตด่วน บันทึกไอเดีย หรือสิ่งที่ต้องทำ... ✏️"
+              placeholder="พิมพ์โน้ตด่วน บันทึกไอเดีย หรือสิ่งที่ต้องทำ..."
               onChange={(e) => setQuickText(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleQuickAdd()}
               style={styles.quickInput}

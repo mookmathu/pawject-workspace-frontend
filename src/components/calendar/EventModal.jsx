@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { searchUsers } from "../../lib/api";
 import EventStylePicker from "./EventStylePicker";
 import { StickerIcon } from "./EventStylePicker";
+import EditIcon from "../common/EditIcon";
 import { DEFAULT_LABEL, getLabel, labelSoftBg } from "./eventStyle";
 import { DateFields, TimeFields, dateToFields, timeToFields, fieldsToDate, fixRange, rangeMs } from "./DateTimeFields";
 
@@ -184,7 +185,7 @@ export default function EventModal({ event, onClose, onUpdate, onDelete }) {
           <div style={styles.viewActions}>
             {canEdit && (
               <button type="button" onClick={() => setMode("edit")} style={styles.editBtn}>
-                ✏️ แก้ไข
+                <EditIcon /> แก้ไข
               </button>
             )}
             <button type="button" onClick={onClose} style={styles.ghostBtn}>

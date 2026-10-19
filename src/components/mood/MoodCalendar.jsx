@@ -4,6 +4,7 @@ import { getMoodMonth } from "../../lib/api";
 import MoodEditor from "./MoodEditor";
 import MoodImage from "./MoodImage";
 import MoodIcon from "./MoodIcon";
+import EditIcon from "../common/EditIcon";
 
 const DOW = ["อา", "จ", "อ", "พ", "พฤ", "ศ", "ส"];
 const MONTHS = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
@@ -263,7 +264,7 @@ export default function MoodCalendar() {
                 {sel.hasImage && <MoodImage day={selected} version={sel.updatedAt} style={s.bigImg} />}
                 <p style={s.noteRead}>{sel.note || `รู้สึก${selMood ? selMood.label : ""}`}</p>
                 <button type="button" className="doodle-btn" onClick={() => setEditing(true)}>
-                  ✏️ แก้ไข
+                  <EditIcon /> แก้ไข
                 </button>
               </>
             ) : (
