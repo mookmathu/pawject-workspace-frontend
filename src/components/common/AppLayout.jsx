@@ -6,6 +6,7 @@ import styles from "./appShellStyles";
 import { WorkspacesProvider } from "../../lib/WorkspacesContext";
 import { UserProfileProvider } from "../../lib/UserProfileContext";
 import { getSocket, disconnectSocket } from "../../lib/socket";
+import ChatToast from "./ChatToast";
 
 // Shared shell for every logged-in page (Home/Dashboard/Task/Chat/Calendar/
 // Profile) — rendered once by the parent route in App.js, with each page's
@@ -40,6 +41,7 @@ export default function AppLayout() {
         <div style={styles.page}>
           <GlobalStyles />
           <AppHeader />
+          <ChatToast />
 
           <main className="app-panel" style={wide ? { ...styles.main, maxWidth: "none", padding: "28px 32px 40px" } : styles.main}>
             <Outlet />

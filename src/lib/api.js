@@ -90,6 +90,11 @@ export function getMyActivity(year) {
   return authRequest(`/auth/me/activity${year ? `?year=${year}` : ""}`);
 }
 
+// A friend's heatmap (friends only; the owner can switch it off in privacy).
+export function getUserActivity(userId, year) {
+  return authRequest(`/auth/${userId}/activity${year ? `?year=${year}` : ""}`);
+}
+
 // --- Daily mood check-ins (private to the signed-in user) ---
 export function getMoodMonth(month) {
   return authRequest(`/mood?month=${month}`);
@@ -425,10 +430,18 @@ export function getFriends() {
   return authRequest("/friends");
 }
 
-export function addFriend(username) {
+export function addFriend(friendId) {
   return authRequest("/friends", {
     method: "POST",
-    body: JSON.stringify({ username }),
+    body: JSON.stringify({ friendId }),
+  });
+}
+
+// Create / change my own friend ID (first one free, then 2 changes per account).
+export function setMyFriendId(friendId) {
+  return authRequest("/auth/me/friend-id", {
+    method: "PATCH",
+    body: JSON.stringify({ friendId }),
   });
 }
 

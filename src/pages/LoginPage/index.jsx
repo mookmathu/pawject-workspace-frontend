@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import GlobalStyles from "../../components/common/GlobalStyles";
-import DogHero from "../../components/mockups/DogHero";
+import { AuthStyles, AuthDogAside } from "../../components/common/authTheme";
+import { PawPrint } from "../../components/mockups/DogSVG";
 import { GoogleIcon, GithubIcon, FacebookIcon } from "../../components/common/icons";
-import styles from "./styles";
 import seenIcon from "../../assets/images/seen.png";
 import closeEyeIcon from "../../assets/images/close-eye.png";
-import { loginUser, getOAuthUrl } from "../../lib/api";
+import { loginUser, getOAuthUrl, getMe } from "../../lib/api";
 
 /**
  * DoodleLoginPage
@@ -24,6 +24,44 @@ export default function DoodleLoginPage() {
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+
+  // Already signed in (the token lasts 7 days and lives in localStorage)?
+  // Skip the form and go straight in. An expired/invalid token is cleared so
+  // the form shows normally; a network hiccup keeps the token and just shows
+  // the form. Skipped after a failed social sign-in so its error is visible.
+  const [checking, setChecking] = useState(() => {
+    try {
+      return !!localStorage.getItem("crew_token") && !new URLSearchParams(window.location.search).get("oauthError");
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    if (!checking) return undefined;
+    let alive = true;
+    getMe()
+      .then(({ user }) => {
+        if (!alive) return;
+        try {
+          localStorage.setItem("crew_user", JSON.stringify(user));
+        } catch {
+          // best-effort only
+        }
+        navigate("/welcome", { replace: true });
+      })
+      .catch((err) => {
+        if (!alive) return;
+        if (err.status === 401 || err.status === 403 || err.status === 404) {
+          localStorage.removeItem("crew_token");
+          localStorage.removeItem("crew_user");
+        }
+        setChecking(false);
+      });
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // The backend sends the browser back to "/?oauthError=1" when a social
   // sign-in fails (provider refused, or the verification email couldn't be
@@ -77,121 +115,108 @@ export default function DoodleLoginPage() {
     }
   }
 
+  if (checking) return null;
+
   return (
-    <div style={styles.page} className="auth-page">
+    <div className="auth-page lg-page">
       <GlobalStyles />
+      <AuthStyles />
 
-      {/* LEFT: floating login card */}
-      <div style={styles.card} className="card-clean auth-card">
-        <div style={styles.brandRow}>
-          <span style={styles.brandDot} />
-          <span style={styles.brandText}>Pawject</span>
-        </div>
+      <div className="lg-shell">
+        {/* LEFT: sign-in form */}
+        <section className="lg-form-side">
+          <div className="lg-brand">
+            <PawPrint size={20} color="var(--accent-color)" />
+            <span>Pawject</span>
+          </div>
 
-        <h1 style={styles.heading} className="auth-heading">เข้าสู่ระบบ</h1>
-        <p style={styles.subheading}>ดีใจที่เจอกันอีกครั้งนะ! กรอกข้อมูลเพื่อเข้าทีมของคุณ</p>
+          <h1 className="lg-heading">เข้าสู่ระบบ</h1>
+          <p className="lg-sub">ดีใจที่เจอกันอีกครั้งนะ! กรอกข้อมูลเพื่อเข้าทีมของคุณ</p>
 
-        <form
-          onSubmit={handleSubmit}
-          noValidate
-          style={{ display: "flex", flexDirection: "column", gap: 18, marginTop: 22 }}
-        >
-          <label style={styles.label}>
-            อีเมล
-            <input
-              className="doodle-input"
-              type="email"
-              placeholder="username@gmail.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              style={{ marginTop: 6, ...(errors.email ? styles.inputError : {}) }}
-            />
-            {errors.email && <span style={styles.errorText}>{errors.email}</span>}
-          </label>
-
-          <label style={styles.label}>
-            รหัสผ่าน
-            <div style={{ position: "relative", marginTop: 6 }}>
+          <form onSubmit={handleSubmit} noValidate className="lg-form">
+            <label className="lg-label">
+              อีเมล
               <input
-                className="doodle-input"
-                type={showPassword ? "text" : "password"}
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                style={{ paddingRight: 44, ...(errors.password ? styles.inputError : {}) }}
+                className="doodle-input lg-input"
+                type="email"
+                placeholder="username@gmail.com"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                style={errors.email ? { borderColor: "#E0473E" } : undefined}
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword((v) => !v)}
-                aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
-                style={styles.eyeBtn}
-              >
-                {showPassword ? (
-                  <img src={seenIcon} alt="seen" style={{ width: 20, height: 20 }} />
-                ) : (
-                  <img src={closeEyeIcon} alt="Close eye" style={{ width: 20, height: 20 }} />
-                )}
+              {errors.email && <span className="lg-error">{errors.email}</span>}
+            </label>
+
+            <label className="lg-label">
+              <span className="lg-label-row">
+                รหัสผ่าน
+                <Link to="/forgot-password" className="lg-forgot">
+                  ลืมรหัสผ่าน?
+                </Link>
+              </span>
+              <div style={{ position: "relative" }}>
+                <input
+                  className="doodle-input lg-input"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  style={{ paddingRight: 44, ...(errors.password ? { borderColor: "#E0473E" } : {}) }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
+                  className="lg-eye"
+                >
+                  {showPassword ? (
+                    <img src={seenIcon} alt="seen" style={{ width: 20, height: 20 }} />
+                  ) : (
+                    <img src={closeEyeIcon} alt="Close eye" style={{ width: 20, height: 20 }} />
+                  )}
+                </button>
+              </div>
+              {errors.password && <span className="lg-error">{errors.password}</span>}
+            </label>
+
+            {errors.form && <p className="lg-error lg-error-form">{errors.form}</p>}
+
+            <button type="submit" className="doodle-btn lg-submit" disabled={submitting}>
+              {submitting ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
+            </button>
+
+            <div className="lg-divider">
+              <span />
+              <em>หรือเข้าสู่ระบบด้วย</em>
+              <span />
+            </div>
+
+            <div className="lg-social-row">
+              <button type="button" className="social-btn lg-social" onClick={() => (window.location.href = getOAuthUrl("google"))}>
+                <GoogleIcon />
+                <span>Google</span>
+              </button>
+              <button type="button" className="social-btn lg-social" onClick={() => (window.location.href = getOAuthUrl("github"))}>
+                <GithubIcon />
+                <span>GitHub</span>
+              </button>
+              <button type="button" className="social-btn lg-social" onClick={() => (window.location.href = getOAuthUrl("facebook"))}>
+                <FacebookIcon />
+                <span>Facebook</span>
               </button>
             </div>
-            {errors.password && <span style={styles.errorText}>{errors.password}</span>}
-          </label>
 
-          <Link to="/forgot-password" style={styles.forgotLink}>
-            ลืมรหัสผ่าน?
-          </Link>
+            <p className="lg-footer">
+              ยังไม่มีบัญชีใช่ไหม? <Link to="/register">สมัครสมาชิกฟรี</Link>
+            </p>
+          </form>
+        </section>
 
-          {errors.form && (
-            <p style={{ ...styles.errorText, textAlign: "center" }}>{errors.form}</p>
-          )}
-
-          <button type="submit" className="doodle-btn" style={styles.signInBtn} disabled={submitting}>
-            {submitting ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
-          </button>
-
-          <div style={styles.dividerRow}>
-            <span style={styles.dividerLine} />
-            <span style={styles.dividerText}>หรือเข้าสู่ระบบด้วย</span>
-            <span style={styles.dividerLine} />
-          </div>
-
-          <div style={{ display: "flex", gap: 14, justifyContent: "center" }}>
-            <button
-              type="button"
-              className="doodle-btn rough-sm social-btn"
-              aria-label="Google"
-              onClick={() => (window.location.href = getOAuthUrl("google"))}
-            >
-              <GoogleIcon />
-            </button>
-            <button
-              type="button"
-              className="doodle-btn rough-sm social-btn"
-              aria-label="GitHub"
-              onClick={() => (window.location.href = getOAuthUrl("github"))}
-            >
-              <GithubIcon />
-            </button>
-            <button
-              type="button"
-              className="doodle-btn rough-sm social-btn"
-              aria-label="Facebook"
-              onClick={() => (window.location.href = getOAuthUrl("facebook"))}
-            >
-              <FacebookIcon />
-            </button>
-          </div>
-
-          <p style={styles.footerText}>
-            ยังไม่มีบัญชีใช่ไหม?{" "}
-            <Link to="/register" style={styles.registerLink}>
-              สมัครสมาชิกฟรี
-            </Link>
-          </p>
-        </form>
+        {/* RIGHT: the blinking pup */}
+        <AuthDogAside />
       </div>
-
-      {/* RIGHT: Pawject pup illustration */}
-      <DogHero />
     </div>
   );
 }

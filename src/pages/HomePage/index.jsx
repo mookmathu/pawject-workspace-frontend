@@ -6,6 +6,8 @@ import { useUserProfile } from "../../lib/UserProfileContext";
 import {
   getFriends,
   addFriend,
+  getMe,
+  setMyFriendId,
   removeFriend,
   createWorkspace,
   addWorkspaceMember,
@@ -113,6 +115,151 @@ function UsernameTagInput({ placeholder, onPick, excludeIds = [], inputRef }) {
   );
 }
 
+// "My friend ID" card — the ID other people type to add me. Created by the
+// user (first one free, then up to 2 changes per account).
+const MAX_FRIEND_ID_CHANGES = 2;
+function MyFriendId() {
+  const [state, setState] = useState({ loading: true, friendId: null, changesLeft: MAX_FRIEND_ID_CHANGES });
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    getMe()
+      .then(({ user }) => {
+        if (!alive) return;
+        setState({
+          loading: false,
+          friendId: user.friendId || null,
+          changesLeft: Math.max(0, MAX_FRIEND_ID_CHANGES - (user.friendIdChangeCount || 0)),
+        });
+      })
+      .catch(() => alive && setState((s) => ({ ...s, loading: false })));
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const hasId = !!state.friendId;
+  const canEdit = !hasId || state.changesLeft > 0;
+  const valid = /^[a-z0-9_]{4,20}$/.test(draft);
+
+  async function save() {
+    if (!valid || saving) return;
+    setSaving(true);
+    setErr("");
+    try {
+      const res = await setMyFriendId(draft);
+      setState({ loading: false, friendId: res.friendId, changesLeft: res.changesLeft });
+      setEditing(false);
+    } catch (e) {
+      setErr(e.message || "บันทึกไม่สำเร็จ");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(state.friendId);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // clipboard blocked — the ID is visible anyway
+    }
+  }
+
+  return (
+    <div style={styles.myIdBox}>
+      <div style={styles.myIdHead}>
+        <span style={styles.myIdLabel}>ID เพิ่มเพื่อนของฉัน</span>
+        {!editing && hasId && (
+          <button type="button" style={styles.myIdLink} onClick={copy}>
+            {copied ? "คัดลอกแล้ว ✓" : "คัดลอก"}
+          </button>
+        )}
+      </div>
+      {state.loading ? (
+        <p style={styles.myIdHint}>กำลังโหลด...</p>
+      ) : editing ? (
+        <>
+          <div style={styles.myIdRow}>
+            <input
+              autoFocus
+              value={draft}
+              onChange={(e) => setDraft(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "").slice(0, 20))}
+              onKeyDown={(e) => e.key === "Enter" && save()}
+              placeholder="เช่น mathu_01"
+              style={styles.myIdInput}
+              maxLength={20}
+            />
+            <button type="button" className="doodle-btn" disabled={!valid || saving} onClick={save}>
+              {saving ? "..." : "บันทึก"}
+            </button>
+            <button type="button" style={styles.myIdLink} onClick={() => { setEditing(false); setErr(""); }}>
+              ยกเลิก
+            </button>
+          </div>
+          <p style={styles.myIdHint}>
+            4–20 ตัว ใช้ a-z, 0-9 และ _ ได้
+            {hasId ? ` · เปลี่ยนได้อีก ${state.changesLeft} ครั้ง` : " · ตั้งครั้งแรกยังไม่นับ และหลังจากนั้นเปลี่ยนได้ 2 ครั้ง"}
+          </p>
+          {err && <p style={styles.myIdErr}>{err}</p>}
+        </>
+      ) : hasId ? (
+        <div style={styles.myIdRow}>
+          <code style={styles.myIdValue}>{state.friendId}</code>
+          {canEdit ? (
+            <button type="button" style={styles.myIdLink} onClick={() => { setDraft(state.friendId); setEditing(true); }}>
+              เปลี่ยน (เหลือ {state.changesLeft} ครั้ง)
+            </button>
+          ) : (
+            <span style={styles.myIdHint}>เปลี่ยนครบแล้ว</span>
+          )}
+        </div>
+      ) : (
+        <div style={styles.myIdRow}>
+          <span style={styles.myIdHint}>ยังไม่มี ID — สร้างเพื่อให้เพื่อนเพิ่มคุณได้</span>
+          <button type="button" className="doodle-btn" onClick={() => { setDraft(""); setEditing(true); }}>
+            สร้าง ID
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Add a friend by typing their friend ID.
+function AddFriendBox({ onAdd }) {
+  const [value, setValue] = useState("");
+  const [busy, setBusy] = useState(false);
+  async function submit() {
+    const id = value.trim().replace(/^@/, "");
+    if (!id || busy) return;
+    setBusy(true);
+    const ok = await onAdd(id);
+    setBusy(false);
+    if (ok) setValue("");
+  }
+  return (
+    <div style={styles.myIdRow}>
+      <input
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && submit()}
+        placeholder="พิมพ์ ID ของเพื่อนเพื่อเพิ่ม..."
+        style={styles.myIdInput}
+      />
+      <button type="button" className="doodle-btn" disabled={!value.trim() || busy} onClick={submit}>
+        {busy ? "..." : "เพิ่มเพื่อน"}
+      </button>
+    </div>
+  );
+}
+
 // The workspace's photo, with a camera-icon overlay the owner can click to
 // replace it — same idea as ProfilePage's own avatar uploader, just scoped
 // to one group instead of the account.
@@ -197,7 +344,6 @@ export default function HomePage() {
 
   const [creatingGroup, setCreatingGroup] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
-  const [pendingRequestIds, setPendingRequestIds] = useState([]);
   const [notice, setNotice] = useState("");
 
   const [joiningByCode, setJoiningByCode] = useState(false);
@@ -218,7 +364,6 @@ export default function HomePage() {
 
   const groupFormRef = useRef(null);
   const newGroupInputRef = useRef(null);
-  const friendInputRef = useRef(null);
 
   // Only friends are fetched here now — the workspace list is shared via
   // WorkspacesContext (fetched once by AppLayout) instead of this page
@@ -271,19 +416,22 @@ export default function HomePage() {
 
   const loading = friendsLoading || workspacesLoading;
 
-  async function handleAddFriend(user) {
+  async function handleAddFriend(friendId) {
     try {
       setNotice("");
-      const result = await addFriend(user.username);
+      setError("");
+      const result = await addFriend(friendId);
       if (result?.request) {
         // Different university/organization — needs the other person to accept.
-        setPendingRequestIds((prev) => [...prev, result.request.id]);
-        setNotice(`ส่งคำขอเป็นเพื่อนถึง @${result.request.username} แล้ว รอการยืนยัน`);
+        setNotice(`ส่งคำขอเป็นเพื่อนถึง ${result.request.name} แล้ว รอการยืนยัน`);
       } else {
         loadFriends();
+        setNotice(`เพิ่ม ${result?.friend?.name || "เพื่อน"} เป็นเพื่อนแล้ว`);
       }
+      return true;
     } catch (err) {
       setError(err.message);
+      return false;
     }
   }
 
@@ -419,7 +567,6 @@ export default function HomePage() {
   }
 
   const groupWorkspaces = workspaces.filter((w) => !w.isPersonal);
-  const friendIds = [...friends.map((f) => f.id), ...pendingRequestIds];
 
   // One row per conversation with unread messages — group workspaces and
   // DMs share the same "workspace:<id>" / "dm:<id>" key shape the chat
@@ -926,12 +1073,8 @@ export default function HomePage() {
       <section style={shellStyles.section}>
         <h2 style={shellStyles.sectionTitle}>เพื่อน <span style={styles.titleCount}>{friends.length}</span></h2>
         <div className="card-clean" style={styles.card}>
-          <UsernameTagInput
-            inputRef={friendInputRef}
-            placeholder="พิมพ์ username เพื่อเพิ่มเพื่อน..."
-            onPick={handleAddFriend}
-            excludeIds={friendIds}
-          />
+          <MyFriendId />
+          <AddFriendBox onAdd={handleAddFriend} />
           {notice && <p style={styles.noticeText}>{notice}</p>}
 
           {friends.length === 0 ? (
@@ -987,6 +1130,15 @@ const WS_DECO = ["bone", "ball", "bowl", "frisbee"];
 const WS_TINTS = ["#A9C8F0", "#F6D98F", "#A8D8B9", "#F4B8B8", "#CDBDE8"];
 
 const styles = {
+  myIdBox: { background: "color-mix(in srgb, var(--accent-color) 8%, var(--bg-surface))", border: "2px dashed color-mix(in srgb, var(--ink) 35%, transparent)", borderRadius: 16, padding: "12px 14px", marginBottom: 14 },
+  myIdInput: { flex: 1, minWidth: 160, width: "auto", boxSizing: "border-box", fontFamily: "inherit", fontSize: 15, padding: "10px 14px", color: "var(--ink)", background: "var(--bg-surface)", border: "2px solid color-mix(in srgb, var(--ink) 30%, transparent)", borderRadius: 14, outline: "none" },
+  myIdHead: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 },
+  myIdLabel: { fontFamily: "'Itim', cursive", fontWeight: 700, fontSize: 14, color: "var(--ink)" },
+  myIdRow: { display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" },
+  myIdValue: { fontFamily: "'Itim', cursive", fontSize: 20, fontWeight: 700, color: "var(--ink)", background: "var(--bg-surface)", border: "2px solid var(--ink)", borderRadius: 12, padding: "3px 14px" },
+  myIdLink: { background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "'Itim', cursive", fontSize: 13.5, color: "var(--accent-color)", fontWeight: 700 },
+  myIdHint: { fontFamily: "'Itim', cursive", fontSize: 13, color: "var(--ink-soft)", margin: "6px 0 0" },
+  myIdErr: { fontFamily: "'Itim', cursive", fontSize: 13, color: "#C23B33", margin: "6px 0 0" },
   backLink: { background: "none", border: "none", padding: 0, marginBottom: 10, cursor: "pointer", fontFamily: "'Itim', cursive", fontSize: 14, color: "var(--ink-soft)" },
   pageHead: { display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 16, padding: "22px 26px 18px", marginBottom: 18, border: "2.5px solid var(--ink)", borderRadius: "26px 20px 24px 20px / 20px 26px 20px 24px", boxShadow: "4px 4px 0 0 var(--ink)", background: "linear-gradient(120deg, color-mix(in srgb, #A9C8F0 30%, var(--bg-surface)) 0%, color-mix(in srgb, #F7E3C4 34%, var(--bg-surface)) 100%)" },
   pageTitle: { fontFamily: "'Itim', cursive", fontSize: "clamp(24px, 3vw, 32px)", fontWeight: 700, color: "var(--ink)", margin: "0 0 4px" },

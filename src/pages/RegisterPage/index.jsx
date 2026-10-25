@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import GlobalStyles from "../../components/common/GlobalStyles";
-import DogHero from "../../components/mockups/DogHero";
+import { AuthStyles, AuthDogAside } from "../../components/common/authTheme";
+import { PawPrint } from "../../components/mockups/DogSVG";
 import { GoogleIcon, GithubIcon, FacebookIcon } from "../../components/common/icons";
-import styles from "./styles";
 import seenIcon from "../../assets/images/seen.png";
 import closeEyeIcon from "../../assets/images/close-eye.png";
 import THAI_UNIVERSITIES from "../../data/thaiUniversities";
@@ -182,290 +182,259 @@ export default function RegisterPage() {
         }
     }
 
+    const pwEye = (
+        <button
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
+            className="lg-eye"
+        >
+            {showPassword ? (
+                <img src={seenIcon} alt="seen" style={{ width: 20, height: 20 }} />
+            ) : (
+                <img src={closeEyeIcon} alt="Close eye" style={{ width: 20, height: 20 }} />
+            )}
+        </button>
+    );
+    const bad = { borderColor: "#E0473E" };
+
     return (
-        <div style={styles.page} className="auth-page">
+        <div className="auth-page lg-page">
             <GlobalStyles />
+            <AuthStyles />
 
-            {/* LEFT: floating register card */}
-            <div style={styles.card} className="card-clean auth-card">
-                <div style={styles.brandRow}>
-                    <span style={styles.brandDot} />
-                    <span style={styles.brandText}>Pawject</span>
-                </div>
+            <div className="lg-shell lg-shell-wide">
+                {/* LEFT: sign-up form */}
+                <section className="lg-form-side">
+                    <div className="lg-brand">
+                        <PawPrint size={20} color="var(--accent-color)" />
+                        <span>Pawject</span>
+                    </div>
 
-                <h1 style={styles.heading} className="auth-heading">สมัครสมาชิก</h1>
-                <p style={styles.subheading}>สร้างบัญชีใหม่เพื่อเริ่มทำงานร่วมกับทีมของคุณ</p>
+                    <h1 className="lg-heading">สมัครสมาชิก</h1>
+                    <p className="lg-sub">สร้างบัญชีใหม่เพื่อเริ่มทำงานร่วมกับทีมของคุณ</p>
 
-                <form
-                    onSubmit={handleSubmit}
-                    noValidate
-                    style={{ display: "flex", flexDirection: "column", gap: 18, marginTop: 22 }}
-                >
-                    <label style={styles.label}>
-                        ชื่อ-นามสกุล
-                        <input
-                            className="doodle-input"
-                            type="text"
-                            placeholder="ชื่อของคุณ"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            style={{ marginTop: 6, ...(errors.name ? styles.inputError : {}) }}
-                        />
-                        {errors.name && <span style={styles.errorText}>{errors.name}</span>}
-                    </label>
-
-                    <label style={styles.label}>
-                        ชื่อผู้ใช้ (username)
-                        <div style={{ position: "relative", marginTop: 6 }}>
-                            <span style={styles.atPrefix}>@</span>
+                    <form onSubmit={handleSubmit} noValidate className="lg-grid">
+                        <label className="lg-label">
+                            ชื่อ-นามสกุล
                             <input
-                                className="doodle-input"
+                                className="doodle-input lg-input"
                                 type="text"
-                                placeholder="username"
-                                value={username}
-                                onChange={(e) => handleUsernameChange(e.target.value)}
-                                style={{ paddingLeft: 28, ...(errors.username ? styles.inputError : {}) }}
+                                placeholder="ชื่อของคุณ"
+                                autoComplete="name"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                style={errors.name ? bad : undefined}
                             />
-                        </div>
-                        {errors.username && <span style={styles.errorText}>{errors.username}</span>}
-                        {!errors.username && USERNAME_REGEX.test(username) && (
-                            <span
-                                style={{
-                                    ...styles.usernameHint,
-                                    color: usernameChecking
-                                        ? "var(--ink-faint)"
-                                        : usernameAvailable === false
-                                        ? "#E0473E"
-                                        : usernameAvailable === true
-                                        ? "#2E8B4F"
-                                        : "var(--ink-faint)",
-                                }}
-                            >
-                                {usernameChecking
-                                    ? "กำลังตรวจสอบ..."
-                                    : usernameAvailable === false
-                                    ? "✕ มีคนใช้ชื่อนี้แล้ว"
-                                    : usernameAvailable === true
-                                    ? "✓ ใช้ชื่อนี้ได้"
-                                    : "\u00A0"}
-                            </span>
-                        )}
-                    </label>
-
-                    <label style={styles.label}>
-                        อีเมล
-                        <input
-                            className="doodle-input"
-                            type="email"
-                            placeholder="username@gmail.com"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            style={{ marginTop: 6, ...(errors.email ? styles.inputError : {}) }}
-                        />
-                        {errors.email && <span style={styles.errorText}>{errors.email}</span>}
-                    </label>
-
-                    <label style={styles.label}>
-                        ประเภทองค์กร
-                        <div style={styles.orgTypeRow}>
-                            <button
-                                type="button"
-                                onClick={() => handleOrgTypeChange("university")}
-                                style={{
-                                    ...styles.orgTypeBtn,
-                                    ...(orgType === "university" ? styles.orgTypeBtnActive : {}),
-                                }}
-                            >
-                                🎓 มหาวิทยาลัย
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => handleOrgTypeChange("company")}
-                                style={{
-                                    ...styles.orgTypeBtn,
-                                    ...(orgType === "company" ? styles.orgTypeBtnActive : {}),
-                                }}
-                            >
-                                🏢 บริษัท/องค์กร
-                            </button>
-                        </div>
-                        {errors.orgType && <span style={styles.errorText}>{errors.orgType}</span>}
-                    </label>
-
-                    {orgType && (
-                        <label style={styles.label}>
-                            {orgType === "university" ? "ชื่อมหาวิทยาลัย" : "ชื่อบริษัท/องค์กร"}
-                            <div style={{ position: "relative", marginTop: 6 }}>
-                                <input
-                                    className="doodle-input"
-                                    type="text"
-                                    placeholder={
-                                        orgType === "university"
-                                            ? "พิมพ์ชื่อมหาวิทยาลัย เช่น เกษตรศาสตร์"
-                                            : "ชื่อบริษัทหรือองค์กรของคุณ"
-                                    }
-                                    value={orgName}
-                                    onChange={(e) => {
-                                        setOrgName(e.target.value);
-                                        setShowOrgSuggestions(true);
-                                    }}
-                                    onFocus={() => setShowOrgSuggestions(true)}
-                                    onBlur={() => setTimeout(() => setShowOrgSuggestions(false), 150)}
-                                    style={errors.orgName ? styles.inputError : {}}
-                                />
-
-                                {orgType === "university" && showOrgSuggestions && orgName.trim().length >= 2 && (
-                                    <ul style={styles.suggestionList}>
-                                        {orgSuggestions.length === 0 && (
-                                            <li style={styles.suggestionLoading}>ไม่พบชื่อที่ตรงกัน — กรอกเองได้เลย</li>
-                                        )}
-                                        {orgSuggestions.map((uni) => (
-                                            <li key={uni.en}>
-                                                <button
-                                                    type="button"
-                                                    style={styles.suggestionItem}
-                                                    onMouseDown={() => handleSelectSuggestion(uni)}
-                                                >
-                                                    {uni.th}
-                                                    <span style={styles.suggestionMeta}>{uni.en}</span>
-                                                </button>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                )}
-                            </div>
-                            {errors.orgName && <span style={styles.errorText}>{errors.orgName}</span>}
+                            {errors.name && <span className="lg-error">{errors.name}</span>}
                         </label>
-                    )}
 
-                    <label style={styles.label}>
-                        รหัสผ่าน
-                        <div style={{ position: "relative", marginTop: 6 }}>
+                        <label className="lg-label">
+                            ชื่อผู้ใช้ (username)
+                            <div style={{ position: "relative" }}>
+                                <span className="lg-at">@</span>
+                                <input
+                                    className="doodle-input lg-input"
+                                    type="text"
+                                    placeholder="username"
+                                    autoComplete="username"
+                                    value={username}
+                                    onChange={(e) => handleUsernameChange(e.target.value)}
+                                    style={{ paddingLeft: 30, ...(errors.username ? bad : {}) }}
+                                />
+                            </div>
+                            {errors.username && <span className="lg-error">{errors.username}</span>}
+                            {!errors.username && USERNAME_REGEX.test(username) && (
+                                <span
+                                    className="lg-hint"
+                                    style={{
+                                        color: usernameChecking
+                                            ? "var(--ink-faint)"
+                                            : usernameAvailable === false
+                                            ? "#E0473E"
+                                            : usernameAvailable === true
+                                            ? "#2E8B4F"
+                                            : "var(--ink-faint)",
+                                    }}
+                                >
+                                    {usernameChecking
+                                        ? "กำลังตรวจสอบ..."
+                                        : usernameAvailable === false
+                                        ? "✕ มีคนใช้ชื่อนี้แล้ว"
+                                        : usernameAvailable === true
+                                        ? "✓ ใช้ชื่อนี้ได้"
+                                        : "\u00A0"}
+                                </span>
+                            )}
+                        </label>
+
+                        <label className="lg-label lg-span2">
+                            อีเมล
                             <input
-                                className="doodle-input"
+                                className="doodle-input lg-input"
+                                type="email"
+                                placeholder="username@gmail.com"
+                                autoComplete="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                style={errors.email ? bad : undefined}
+                            />
+                            {errors.email && <span className="lg-error">{errors.email}</span>}
+                        </label>
+
+                        <div className="lg-label lg-span2">
+                            ประเภทองค์กร
+                            <div className="lg-org-row">
+                                <button
+                                    type="button"
+                                    className={`lg-org-btn${orgType === "university" ? " is-on" : ""}`}
+                                    onClick={() => handleOrgTypeChange("university")}
+                                >
+                                    มหาวิทยาลัย
+                                </button>
+                                <button
+                                    type="button"
+                                    className={`lg-org-btn${orgType === "company" ? " is-on" : ""}`}
+                                    onClick={() => handleOrgTypeChange("company")}
+                                >
+                                    บริษัท/องค์กร
+                                </button>
+                            </div>
+                            {errors.orgType && <span className="lg-error">{errors.orgType}</span>}
+                        </div>
+
+                        {orgType && (
+                            <label className="lg-label lg-span2">
+                                {orgType === "university" ? "ชื่อมหาวิทยาลัย" : "ชื่อบริษัท/องค์กร"}
+                                <div style={{ position: "relative" }}>
+                                    <input
+                                        className="doodle-input lg-input"
+                                        type="text"
+                                        placeholder={
+                                            orgType === "university"
+                                                ? "พิมพ์ชื่อมหาวิทยาลัย เช่น เกษตรศาสตร์"
+                                                : "ชื่อบริษัทหรือองค์กรของคุณ"
+                                        }
+                                        value={orgName}
+                                        onChange={(e) => {
+                                            setOrgName(e.target.value);
+                                            setShowOrgSuggestions(true);
+                                        }}
+                                        onFocus={() => setShowOrgSuggestions(true)}
+                                        onBlur={() => setTimeout(() => setShowOrgSuggestions(false), 150)}
+                                        style={errors.orgName ? bad : undefined}
+                                    />
+
+                                    {orgType === "university" && showOrgSuggestions && orgName.trim().length >= 2 && (
+                                        <ul className="lg-suggest">
+                                            {orgSuggestions.length === 0 && (
+                                                <li className="lg-suggest-empty">ไม่พบชื่อที่ตรงกัน — กรอกเองได้เลย</li>
+                                            )}
+                                            {orgSuggestions.map((uni) => (
+                                                <li key={uni.en}>
+                                                    <button type="button" onMouseDown={() => handleSelectSuggestion(uni)}>
+                                                        {uni.th}
+                                                        <small>{uni.en}</small>
+                                                    </button>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </div>
+                                {errors.orgName && <span className="lg-error">{errors.orgName}</span>}
+                            </label>
+                        )}
+
+                        <label className="lg-label">
+                            รหัสผ่าน
+                            <div style={{ position: "relative" }}>
+                                <input
+                                    className="doodle-input lg-input"
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="••••••••"
+                                    autoComplete="new-password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    style={{ paddingRight: 44, ...(errors.password ? bad : {}) }}
+                                />
+                                {pwEye}
+                            </div>
+                            {errors.password && <span className="lg-error">{errors.password}</span>}
+                        </label>
+
+                        <label className="lg-label">
+                            ยืนยันรหัสผ่าน
+                            <input
+                                className="doodle-input lg-input"
                                 type={showPassword ? "text" : "password"}
                                 placeholder="••••••••"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                style={{ paddingRight: 44, ...(errors.password ? styles.inputError : {}) }}
+                                autoComplete="new-password"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                style={errors.confirmPassword ? bad : undefined}
                             />
-                            <button
-                                type="button"
-                                onClick={() => setShowPassword((v) => !v)}
-                                aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
-                                style={styles.eyeBtn}
-                            >
-                                {showPassword ? (
-                                    <img src={seenIcon} alt="seen" style={{ width: 20, height: 20 }} />
-                                ) : (
-                                    <img src={closeEyeIcon} alt="Close eye" style={{ width: 20, height: 20 }} />
-                                )}
-                            </button>
-                        </div>
-                        {errors.password && <span style={styles.errorText}>{errors.password}</span>}
+                            {errors.confirmPassword && <span className="lg-error">{errors.confirmPassword}</span>}
+                        </label>
 
                         {password.length > 0 && (
-                            <ul style={styles.passwordChecklist}>
+                            <ul className="lg-rules lg-span2">
                                 {PASSWORD_RULES.map((rule) => {
                                     const passed = rule.test(password);
                                     return (
-                                        <li
-                                            key={rule.key}
-                                            style={{
-                                                ...styles.passwordRuleItem,
-                                                color: passed ? "#2E8B4F" : "var(--ink-faint)",
-                                            }}
-                                        >
+                                        <li key={rule.key} style={{ color: passed ? "#2E8B4F" : "var(--ink-faint)" }}>
                                             {passed ? "✓" : "○"} {rule.label}
                                         </li>
                                     );
                                 })}
                             </ul>
                         )}
-                    </label>
 
-                    <label style={styles.label}>
-                        ยืนยันรหัสผ่าน
-                        <input
-                            className="doodle-input"
-                            type={showPassword ? "text" : "password"}
-                            placeholder="••••••••"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            style={{ marginTop: 6, ...(errors.confirmPassword ? styles.inputError : {}) }}
-                        />
-                        {errors.confirmPassword && <span style={styles.errorText}>{errors.confirmPassword}</span>}
-                    </label>
-
-                    <div>
-                        <div style={styles.checkboxRow}>
-                            <input
-                                id="agree-terms"
-                                type="checkbox"
-                                style={styles.checkbox}
-                                checked={agreed}
-                                onChange={(e) => setAgreed(e.target.checked)}
-                            />
-                            <label htmlFor="agree-terms" style={styles.checkboxLabel}>
-                                ฉันยอมรับ <a href="#terms" style={styles.termsLink}>ข้อกำหนดการใช้งาน</a> และ{" "}
-                                <a href="#privacy" style={styles.termsLink}>นโยบายความเป็นส่วนตัว</a>
-                            </label>
+                        <div className="lg-span2">
+                            <div className="lg-check">
+                                <input id="agree-terms" type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} />
+                                <label htmlFor="agree-terms">
+                                    ฉันยอมรับ <a href="#terms">ข้อกำหนดการใช้งาน</a> และ <a href="#privacy">นโยบายความเป็นส่วนตัว</a>
+                                </label>
+                            </div>
+                            {errors.agreed && <span className="lg-error" style={{ display: "block", marginTop: 6 }}>{errors.agreed}</span>}
                         </div>
-                        {errors.agreed && <span style={styles.errorText}>{errors.agreed}</span>}
-                    </div>
 
-                    {errors.form && (
-                        <p style={{ ...styles.errorText, textAlign: "center" }}>{errors.form}</p>
-                    )}
+                        {errors.form && <p className="lg-error lg-error-form lg-span2">{errors.form}</p>}
 
-                    <button type="submit" className="doodle-btn" style={styles.signInBtn} disabled={submitting}>
-                        {submitting ? "กำลังสมัครสมาชิก..." : "สมัครสมาชิก"}
-                    </button>
-
-                    <div style={styles.dividerRow}>
-                        <span style={styles.dividerLine} />
-                        <span style={styles.dividerText}>หรือสมัครด้วย</span>
-                        <span style={styles.dividerLine} />
-                    </div>
-
-                    <div style={{ display: "flex", gap: 14, justifyContent: "center" }}>
-                        <button
-                            type="button"
-                            className="doodle-btn rough-sm social-btn"
-                            aria-label="Google"
-                            onClick={() => (window.location.href = getOAuthUrl("google"))}
-                        >
-                            <GoogleIcon />
+                        <button type="submit" className="doodle-btn lg-submit lg-span2" disabled={submitting}>
+                            {submitting ? "กำลังสมัครสมาชิก..." : "สมัครสมาชิก"}
                         </button>
-                        <button
-                            type="button"
-                            className="doodle-btn rough-sm social-btn"
-                            aria-label="GitHub"
-                            onClick={() => (window.location.href = getOAuthUrl("github"))}
-                        >
-                            <GithubIcon />
-                        </button>
-                        <button
-                            type="button"
-                            className="doodle-btn rough-sm social-btn"
-                            aria-label="Facebook"
-                            onClick={() => (window.location.href = getOAuthUrl("facebook"))}
-                        >
-                            <FacebookIcon />
-                        </button>
-                    </div>
 
-                    <p style={styles.footerText}>
-                        มีบัญชีอยู่แล้ว?{" "}
-                        <Link to="/" style={styles.registerLink}>
-                            เข้าสู่ระบบ
-                        </Link>
-                    </p>
-                </form>
+                        <div className="lg-divider lg-span2">
+                            <span />
+                            <em>หรือสมัครด้วย</em>
+                            <span />
+                        </div>
+
+                        <div className="lg-social-row lg-span2">
+                            <button type="button" className="social-btn lg-social" onClick={() => (window.location.href = getOAuthUrl("google"))}>
+                                <GoogleIcon />
+                                <span>Google</span>
+                            </button>
+                            <button type="button" className="social-btn lg-social" onClick={() => (window.location.href = getOAuthUrl("github"))}>
+                                <GithubIcon />
+                                <span>GitHub</span>
+                            </button>
+                            <button type="button" className="social-btn lg-social" onClick={() => (window.location.href = getOAuthUrl("facebook"))}>
+                                <FacebookIcon />
+                                <span>Facebook</span>
+                            </button>
+                        </div>
+
+                        <p className="lg-footer lg-span2">
+                            มีบัญชีอยู่แล้ว? <Link to="/">เข้าสู่ระบบ</Link>
+                        </p>
+                    </form>
+                </section>
+
+                {/* RIGHT: the blinking pup */}
+                <AuthDogAside />
             </div>
-
-            {/* RIGHT: Pawject pup illustration (shared with login) */}
-            <DogHero />
         </div>
     );
 }

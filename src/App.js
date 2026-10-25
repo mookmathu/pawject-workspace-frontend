@@ -1,6 +1,7 @@
 import { useEffect } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "./lib/ThemeContext";
+import SplashIntro from "./components/common/SplashIntro";
 import AppLayout from "./components/common/AppLayout";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -16,8 +17,6 @@ import TaskPage from "./pages/TaskPage";
 import ChatPage from "./pages/ChatPage";
 import CalendarPage from "./pages/CalendarPage";
 import ProfilePage from "./pages/ProfilePage";
-import NotFoundPage from "./pages/NotFoundPage";
-import { PrivacyPolicyPage, DataDeletionPage } from "./pages/LegalPage";
 
 function App() {
   useEffect(() => {
@@ -26,6 +25,7 @@ function App() {
 
   return (
     <ThemeProvider>
+      <SplashIntro />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LoginPage />} />
@@ -36,21 +36,17 @@ function App() {
           <Route path="/oauth-callback" element={<OAuthCallbackPage />} />
           <Route path="/complete-profile" element={<CompleteProfilePage />} />
           <Route path="/welcome" element={<WelcomePage />} />
-          <Route path="/privacy" element={<PrivacyPolicyPage />} />
-          <Route path="/data-deletion" element={<DataDeletionPage />} />
 
           {/* Logged-in pages share one AppLayout (header + shell) instead of
               each page mounting its own — see AppLayout.jsx for why. */}
           <Route element={<AppLayout />}>
             <Route path="/home" element={<HomePage />} />
-            <Route path="/groups" element={<Navigate to="/home" replace />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/task" element={<TaskPage />} />
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/profile" element={<ProfilePage />} />
           </Route>
-          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>

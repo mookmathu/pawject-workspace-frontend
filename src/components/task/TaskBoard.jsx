@@ -20,7 +20,7 @@ import TaskDetailModal from "./TaskDetailModal";
 import BoardNotes from "./BoardNotes";
 import { categoryColor } from "./categoryColor";
 import { consumeTaskJump } from "../../lib/navJump";
-import Mascot, { MascotNote } from "../common/Mascot";
+import { MascotNote } from "../common/Mascot";
 
 const THAI_MONTHS = [
   "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
@@ -615,10 +615,12 @@ export default function TaskBoard() {
     const EDGE = 110; // px from the edge where scrolling kicks in
     const MAX_SPEED = 22; // px per frame at the very edge
     let pointerX = null;
+    let pointerY = null;
     let raf = 0;
 
     function onDragOver(e) {
       pointerX = e.clientX;
+      pointerY = e.clientY;
     }
     function tick() {
       const el = scrollRef.current;
@@ -628,6 +630,15 @@ export default function TaskBoard() {
         if (pointerX < rect.left + EDGE) dx = -Math.min(1, (rect.left + EDGE - pointerX) / EDGE);
         else if (pointerX > rect.right - EDGE) dx = Math.min(1, (pointerX - (rect.right - EDGE)) / EDGE);
         if (dx !== 0) el.scrollLeft += dx * MAX_SPEED;
+      }
+      // Vertical: scroll the page (and the stacked columns on phones) when
+      // the pointer nears the top/bottom of the window.
+      if (pointerY !== null) {
+        const vh = window.innerHeight;
+        let dy = 0;
+        if (pointerY < EDGE) dy = -Math.min(1, (EDGE - pointerY) / EDGE);
+        else if (pointerY > vh - EDGE) dy = Math.min(1, (pointerY - (vh - EDGE)) / EDGE);
+        if (dy !== 0) window.scrollBy(0, dy * MAX_SPEED);
       }
       raf = requestAnimationFrame(tick);
     }
@@ -900,12 +911,36 @@ export default function TaskBoard() {
 
         .task-scroll-arrow:hover { transform: translate(-1px, -1px); }
 
+        .task-filter-chips { display: contents; }
         .task-col-add { transition: transform 100ms ease, background-color 100ms ease; }
         .task-col-add:hover { transform: scale(1.1); background-color: var(--accent-color) !important; color: #FFFDF8 !important; }
 
         @media (max-width: 640px) {
           .task-board-header { flex-direction: column; align-items: flex-start !important; }
-          .task-board-actions { width: 100%; }
+          .task-board-header { gap: 12px !important; padding-bottom: 14px !important; margin-bottom: 14px !important; }
+          .task-board-badge { width: 40px !important; height: 40px !important; font-size: 18px !important; box-shadow: 2px 2px 0 0 var(--ink) !important; }
+          .task-board-title { font-size: 22px !important; }
+          .task-board-sub { font-size: 12.5px !important; line-height: 1.35; }
+          /* Actions: one tidy row — categories · view switch · add status */
+          .task-board-actions { width: 100%; flex-wrap: wrap !important; align-items: center !important; justify-content: space-between; gap: 8px !important; }
+          .task-board-actions .task-act-secondary { padding: 7px 12px !important; font-size: 13px !important; }
+          .task-board-actions .task-view-label { display: none; }
+          .task-board-actions [role="tablist"] { box-shadow: 2px 2px 0 0 var(--ink) !important; }
+          .task-board-actions [role="tab"] { padding: 7px 12px !important; }
+          .task-board-actions .task-act-primary { padding: 8px 14px !important; font-size: 13px !important; margin-left: auto; }
+          /* Filters: search on its own row, chips scroll sideways instead of wrapping into 4 rows */
+          /* Category popover: open from the button's left edge so it never runs off-screen */
+          .task-cat-menu { right: auto !important; left: 0 !important; width: min(300px, calc(100vw - 32px)); box-sizing: border-box; }
+          .task-cat-menu input { min-width: 0; flex: 1; }
+          .task-filter-bar { margin-bottom: 16px !important; gap: 10px !important; }
+          .task-filter-bar .task-search { flex: 1 1 100% !important; min-width: 0 !important; }
+          .task-filter-chips {
+            display: flex; flex: 1 1 100%; gap: 8px; min-width: 0;
+            overflow-x: auto; padding: 2px 16px 6px; margin: 0 -16px;
+            scrollbar-width: none; -webkit-overflow-scrolling: touch;
+          }
+          .task-filter-chips::-webkit-scrollbar { display: none; }
+          .task-filter-chips > * { flex: 0 0 auto; }
           /* Phone: stack the columns vertically instead of scrolling sideways. */
           .task-columns-grid { flex-direction: column !important; overflow-x: visible !important; }
           .task-columns-grid > div { flex: none !important; max-width: none !important; min-width: 0 !important; }
@@ -920,10 +955,10 @@ export default function TaskBoard() {
 
       <div className="task-board-header" style={styles.boardHeader}>
         <div style={styles.headerLeft}>
-          <span style={styles.boardBadge}>{boardBadgeText}</span>
+          <span className="task-board-badge" style={styles.boardBadge}>{boardBadgeText}</span>
           <div style={styles.headerText}>
             <div style={styles.titleRow}>
-              <h2 style={styles.boardTitle}>Task Board</h2>
+              <h2 className="task-board-title" style={styles.boardTitle}>Task Board</h2>
               <button
                 type="button"
                 onClick={() => setWorkspaceMenuOpen((v) => !v)}
@@ -963,7 +998,7 @@ export default function TaskBoard() {
                 </div>
               )}
             </div>
-            <p style={styles.boardSubtitle}>บอร์ดของคุณ — ลากการ์ดเพื่อย้ายสถานะ หรือคลิกชื่อสถานะเพื่อแก้ไข/ลบ</p>
+            <p className="task-board-sub" style={styles.boardSubtitle}>บอร์ดของคุณ — ลากการ์ดเพื่อย้ายสถานะ หรือคลิกชื่อสถานะเพื่อแก้ไข/ลบ</p>
             {urgentCount > 0 && (
               <p style={styles.urgentBanner}>🔔 มี {urgentCount} งานใกล้/เกินกำหนดที่ยังไม่เสร็จ</p>
             )}
@@ -977,12 +1012,13 @@ export default function TaskBoard() {
             <button
               type="button"
               onClick={() => setCategoryMenuOpen((v) => !v)}
+              className="task-act-secondary"
               style={styles.secondaryBtn}
             >
               🏷️ หมวดหมู่
             </button>
             {categoryMenuOpen && (
-              <div style={styles.categoryMenu}>
+              <div className="task-cat-menu" style={styles.categoryMenu}>
                 {categories.length === 0 && (
                   <p style={styles.categoryMenuEmpty}>ยังไม่มีหมวดหมู่</p>
                 )}
@@ -1036,7 +1072,7 @@ export default function TaskBoard() {
                 style={{ ...styles.viewBtn, ...(view === v.id ? styles.viewBtnActive : {}) }}
               >
                 {v.icon}
-                {view === v.id && <span>{v.label}</span>}
+                {view === v.id && <span className="task-view-label">{v.label}</span>}
               </button>
             ))}
           </div>
@@ -1058,7 +1094,7 @@ export default function TaskBoard() {
           ) : (
             <button
               type="button"
-              className="doodle-btn"
+              className="doodle-btn task-act-primary"
               style={styles.primaryBtn}
               onClick={() => setAddingColumn(true)}
             >
@@ -1069,14 +1105,16 @@ export default function TaskBoard() {
       </div>
 
       {/* Search + filters */}
-      <div style={styles.filterBar}>
+      <div className="task-filter-bar" style={styles.filterBar}>
         <input
           type="text"
           placeholder="🔍 ค้นหางาน..."
+          className="task-search"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           style={styles.searchInput}
         />
+        <div className="task-filter-chips">
         <select
           value={filterCategoryId}
           onChange={(e) => setFilterCategoryId(e.target.value)}
@@ -1131,6 +1169,7 @@ export default function TaskBoard() {
         >
           🗄️ งานที่เก็บไว้ ({archivedCount})
         </button>
+        </div>
       </div>
 
       {/* Close any open popover / add-column form when clicking elsewhere */}
@@ -1280,9 +1319,13 @@ export default function TaskBoard() {
               </div>
 
               {tasks.length === 0 && !isDragOver && (
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, padding: "10px 0" }}>
-                  <Mascot name="puppy" width={46} anim="float" />
-                  <p style={{ ...styles.emptyColumn, margin: 0 }}>ยังไม่มีงานที่นี่</p>
+                <div style={styles.emptyBox}>
+                  <svg width="46" height="40" viewBox="0 0 46 40" fill="none" stroke="var(--ink)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M5 22l6-14h24l6 14" fill="var(--bg-surface)" />
+                    <path d="M5 22v12c0 1.7 1.3 3 3 3h30c1.7 0 3-1.3 3-3V22H29c0 3-2.7 5-6 5s-6-2-6-5H5z" fill="color-mix(in srgb, var(--accent-color) 22%, var(--bg-surface))" />
+                  </svg>
+                  <span style={styles.emptyTitle}>ยังไม่มีงานที่นี่</span>
+                  <span style={styles.emptyHint}>ลากการ์ดมาวาง หรือกด + เพื่อเพิ่ม</span>
                 </div>
               )}
 
@@ -1497,6 +1540,7 @@ export default function TaskBoard() {
                   categories={categories}
                   members={members}
                   openRequest={composerRequests[col.id] || 0}
+                  columnName={col.name}
                 />
               )}
             </div>
@@ -2085,6 +2129,18 @@ const styles = {
     justifyContent: "center",
     flexShrink: 0,
   },
+  emptyBox: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 4,
+    padding: "16px 10px 14px",
+    background: "color-mix(in srgb, var(--bg-surface) 70%, transparent)",
+    border: "2px dashed var(--ink-faint)",
+    borderRadius: "14px 18px 14px 18px / 18px 14px 18px 14px",
+  },
+  emptyTitle: { fontFamily: "'Itim', cursive", fontSize: 14.5, color: "var(--ink)", marginTop: 4 },
+  emptyHint: { fontFamily: "'Itim', cursive", fontSize: 12, color: "var(--ink-faint)", textAlign: "center" },
   emptyColumn: {
     fontFamily: "'Itim', cursive",
     fontSize: 13,

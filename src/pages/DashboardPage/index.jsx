@@ -61,6 +61,7 @@ export default function DashboardPage() {
   const [error, setError] = useState("");
   const [hoverDay, setHoverDay] = useState(null);
   const cacheRef = useRef({});
+  const watchRef = useRef(null);
   const activeIdRef = useRef(null);
 
   const personal = workspaces.find((w) => w.isPersonal) || null;
@@ -159,7 +160,15 @@ export default function DashboardPage() {
     const prevWeekDone = days.slice(0, 7).reduce((s, d) => s + d.completed, 0);
     const peak = days.slice(7).reduce((best, d) => (d.completed > best.completed ? d : best), days[7]);
 
-    return { doneIds, firstOpen, done, open, overdue, inProgress, todo, doing, days, weekDone, prevWeekDone, peak };
+    // Deadline watchlist: overdue first (most overdue on top), then anything due within a week.
+    const today0 = startOfDay(new Date()).getTime();
+    const dayDiff = (t) => Math.round((startOfDay(t.dueDate).getTime() - today0) / DAY);
+    const watch = open
+      .filter((t) => t.dueDate && (overdueIds.has(t.id) || dayDiff(t) <= 7))
+      .map((t) => ({ task: t, late: overdueIds.has(t.id), diff: dayDiff(t) }))
+      .sort((a, b) => new Date(a.task.dueDate) - new Date(b.task.dueDate));
+
+    return { doneIds, firstOpen, done, open, overdue, inProgress, todo, doing, days, weekDone, prevWeekDone, peak, watch };
   }, [columns, tasks]);
 
   // Move a task by ticking its checkbox (Done <-> back to the first column)
@@ -193,6 +202,10 @@ export default function DashboardPage() {
     navigate("/task");
   }
 
+  function showOverdue() {
+    if (watchRef.current) watchRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
   const members = (activeWs?.members || []).map((m) => m.user).filter(Boolean);
   const total = tasks.length;
   const pct = (n) => (total ? Math.round((n / total) * 100) : 0);
@@ -202,8 +215,8 @@ export default function DashboardPage() {
     <div className="dash-head" style={S.head}>
       <div style={S.headLeft}>
         <span style={S.headDot} />
-        <h2 style={S.title}>Pawject Task Overview</h2>
-        <span style={S.titlePill}>ภาพรวมงานของทีมประจำสัปดาห์ 🐾</span>
+        <h2 style={S.title}>ภาพรวมงาน</h2>
+        <span style={S.titlePill}>สรุปงานและความคืบหน้า · กราฟย้อนหลัง 14 วัน</span>
       </div>
       <div style={S.headRight}>
         {mode === "team" && teams.length > 0 && (
@@ -224,7 +237,7 @@ export default function DashboardPage() {
           </div>
         )}
         <div style={S.toggle} role="tablist">
-          {[{ id: "me", label: "MY BOARD 🐱" }, { id: "team", label: "TEAM OVERVIEW 🐾" }].map((o) => (
+          {[{ id: "me", label: "งานของฉัน" }, { id: "team", label: "ภาพรวมทีม" }].map((o) => (
             <button key={o.id} type="button" role="tab" aria-selected={mode === o.id} onClick={() => changeMode(o.id)} style={{ ...S.toggleBtn, ...(mode === o.id ? S.toggleOn : {}) }}>
               {o.label}
             </button>
@@ -266,46 +279,40 @@ export default function DashboardPage() {
       {/* Row 2: status + workload */}
       <div style={S.twoCol}>
         <section className="dash-card" style={S.card}>
-          <div style={S.cardHead}>
-            <h3 style={S.cardTitle}><span style={S.cardIcon}>📊</span> Task by Status</h3>
-            <span style={{ ...S.chip, background: tint(BLUE, 22), color: BLUE }}>Live ✦</span>
+          <div style={{ ...S.cardHead, background: tint(BLUE, 16) }}>
+            <h3 style={S.cardTitle}>สถานะงาน</h3>
+            <button type="button" style={{ ...S.chip, ...S.chipBtn, background: "var(--bg-surface)", color: "var(--ink)", border: "1.5px solid var(--ink)" }} onClick={openReport}>
+              ดูรายงานสรุป →
+            </button>
           </div>
-          <div style={S.statusGrid}>
+          <div className="dash-status-grid" style={S.statusGrid}>
             {[
-              { color: BLUE, n: stats.inProgress.length, tag: "กำลังดำเนินการ", sub: "In-Progress" },
-              { color: RED, n: stats.overdue.length, tag: "ล่าช้ากว่าแผน", sub: "Overdue" },
-              { color: GREEN, n: stats.done.length, tag: "เสร็จสมบูรณ์", sub: "Done" },
-            ].map((s) => (
-              <div key={s.sub} style={{ ...S.statusBox, background: tint(s.color, 12), borderColor: tint(s.color, 45) }}>
-                <span style={{ ...S.statusNum, color: s.color }}>{s.n}</span>
-                <span style={{ ...S.statusPill, color: s.color, borderColor: tint(s.color, 55) }}>● {s.sub}</span>
-                <span style={{ ...S.statusSub, color: s.color }}>{s.tag}</span>
-              </div>
-            ))}
-          </div>
-          <div style={S.balanceHead}>
-            <span>Task Balance</span>
-            <span>
-              {pct(stats.inProgress.length)}% Fetching · {pct(stats.overdue.length)}% Overdue · {pct(stats.done.length)}% Done
-            </span>
-          </div>
-          <div style={S.balanceTrack}>
-            {total === 0 ? null : (
-              <>
-                <div style={{ width: `${pct(stats.inProgress.length)}%`, background: BLUE }} />
-                <div style={{ width: `${pct(stats.overdue.length)}%`, background: RED }} />
-                <div style={{ width: `${pct(stats.done.length)}%`, background: GREEN }} />
-              </>
-            )}
+              { color: BLUE, n: stats.inProgress.length, tag: "กำลังดำเนินการ", click: null },
+              { color: RED, n: stats.overdue.length, tag: "ล่าช้า", click: stats.overdue.length ? showOverdue : null },
+              { color: GREEN, n: stats.done.length, tag: "เสร็จแล้ว", click: null },
+            ].map((s) => {
+              const Box = s.click ? "button" : "div";
+              return (
+                <Box
+                  key={s.tag}
+                  {...(s.click ? { type: "button", onClick: s.click, title: "ดูรายการงานที่ล่าช้า", className: "dash-statusbtn" } : {})}
+                  style={{ ...S.statusBox, background: tint(s.color, 16), borderColor: s.color, ...(s.click ? S.statusBtn : {}) }}
+                >
+                  <span className="dash-status-num" style={{ ...S.statusNum, color: s.color }}>{s.n}</span>
+                  <span className="dash-status-pill" style={{ ...S.statusPill, color: s.color, borderColor: s.color }}>{s.tag}</span>
+                  <span className="dash-status-sub" style={S.statusSub}>{pct(s.n)}% ของงานทั้งหมด</span>
+                </Box>
+              );
+            })}
           </div>
         </section>
 
         <section className="dash-card" style={S.card}>
-          <div style={S.cardHead}>
-            <h3 style={S.cardTitle}><span style={S.cardIcon}>🐾</span> {mode === "team" ? "Workload by Pack Member" : "Workload by Category"}</h3>
+          <div style={{ ...S.cardHead, background: tint(AMBER, 24) }}>
+            <h3 style={S.cardTitle}>{mode === "team" ? "ภาระงานรายสมาชิก" : "ภาระงานตามหมวดหมู่"}</h3>
             {mode === "team" && (
-              <button type="button" style={{ ...S.chip, ...S.chipBtn, background: tint(BLUE, 22), color: BLUE }} onClick={() => navigate("/task")}>
-                MEET THE PACK →
+              <button type="button" style={{ ...S.chip, ...S.chipBtn, background: "var(--bg-surface)", color: "var(--ink)", border: "1.5px solid var(--ink)" }} onClick={() => navigate("/task")}>
+                ไปที่หน้า Task →
               </button>
             )}
           </div>
@@ -316,13 +323,15 @@ export default function DashboardPage() {
       {/* Row 3: checklists + completion line chart */}
       <div className="dash-check-row" style={S.checkRow}>
         {[
-          { title: "To-Do", color: BLUE, list: stats.todo },
-          { title: "Doing", color: AMBER, list: stats.doing },
-          { title: "Done", color: GREEN, list: stats.done },
+          { title: "todo", label: "ต้องทำ", color: BLUE, list: stats.todo },
+          { title: "doing", label: "กำลังทำ", color: AMBER, list: stats.doing },
+          { title: "done", label: "เสร็จแล้ว", color: GREEN, list: stats.done },
         ].map((col) => (
           <section key={col.title} className="dash-card" style={S.checkCol}>
-            <h3 style={{ ...S.checkTitle, color: col.color }}>{col.title}</h3>
-            <p style={S.checkCount}>{col.list.length} งาน</p>
+            <div style={{ ...S.checkBand, background: tint(col.color, 26) }}>
+              <h3 style={S.checkTitle}>{col.label}</h3>
+              <span style={S.checkCount}>{col.list.length} งาน</span>
+            </div>
             <div style={S.checkList}>
               {col.list.length === 0 && <span style={S.muted}>ว่าง</span>}
               {col.list.slice(0, 6).map((t) => {
@@ -351,44 +360,28 @@ export default function DashboardPage() {
         ))}
 
         <section className="dash-card" style={{ ...S.card, ...S.lineCard }}>
-          <h3 style={{ ...S.cardTitle, marginBottom: 6 }}>Complete Task</h3>
-          <p style={S.muted}>งานที่เสร็จต่อวัน · 14 วันล่าสุด</p>
+          <div style={{ ...S.cardHead, background: tint(GREEN, 18) }}>
+            <h3 style={S.cardTitle}>งานที่เสร็จต่อวัน</h3>
+            <span style={S.muted}>14 วันล่าสุด</span>
+          </div>
           <LineChart days={stats.days} hover={hoverDay} setHover={setHoverDay} />
         </section>
       </div>
 
       {/* Row 4: donut + notes wall */}
       <div style={S.twoColRev}>
-        <section className="dash-card" style={{ ...S.card, display: "flex", flexDirection: "column" }}>
-          <div style={S.cardHead}>
-            <div>
-              <h3 style={S.cardTitle}>Work process</h3>
-              <p style={S.muted}>
-                {(() => {
-                  const a = stats.days[0].date;
-                  const b = stats.days[13].date;
-                  return `ช่วง ${a.getDate()} ${THAI_MONTHS[a.getMonth()]} – ${b.getDate()} ${THAI_MONTHS[b.getMonth()]}`;
-                })()}
-              </p>
-            </div>
-            <button type="button" style={{ ...S.chip, ...S.chipBtn, background: "var(--bg-page)", color: "var(--accent-color)", border: "1.5px solid var(--accent-color)" }} onClick={openReport}>
-              View Report
-            </button>
+        <section ref={watchRef} className="dash-card" style={S.card}>
+          <div style={{ ...S.cardHead, background: tint(RED, 14) }}>
+            <h3 style={S.cardTitle}>งานที่ต้องจับตา</h3>
+            {stats.watch.length > 0 && <span style={{ ...S.chip, background: RED, color: "#FFFDF8" }}>{stats.watch.length}</span>}
           </div>
-          <Donut
-            total={total}
-            parts={[
-              { label: "Done", n: stats.done.length, color: GREEN },
-              { label: "Doing", n: stats.doing.length, color: AMBER },
-              { label: "To-Do", n: stats.todo.length, color: BLUE },
-            ]}
-          />
+          <Watchlist items={stats.watch} members={members} onOpen={openTask} showWho={mode === "team"} />
         </section>
 
         <section className="dash-card" style={S.card}>
-          <div style={S.cardHead}>
-            <h3 style={S.cardTitle}><span style={S.cardIcon}>📌</span> Note Wall</h3>
-            <button type="button" style={{ ...S.chip, ...S.chipBtn, background: tint(AMBER, 26), color: "var(--ink)" }} onClick={() => navigate("/task")}>
+          <div style={{ ...S.cardHead, background: tint("#9B87D8", 22) }}>
+            <h3 style={S.cardTitle}>กระดานโน้ต</h3>
+            <button type="button" style={{ ...S.chip, ...S.chipBtn, background: "var(--bg-surface)", color: "var(--ink)", border: "1.5px solid var(--ink)" }} onClick={() => navigate("/task")}>
               เปิดโน้ตทั้งหมด →
             </button>
           </div>
@@ -419,19 +412,13 @@ function LineChart({ days, hover, setHover }) {
   return (
     <div style={{ position: "relative" }}>
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: "block" }} role="img" aria-label="กราฟจำนวนงานที่เสร็จต่อวัน">
-        <defs>
-          <linearGradient id="dashArea" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={BLUE} stopOpacity="0.35" />
-            <stop offset="100%" stopColor={BLUE} stopOpacity="0" />
-          </linearGradient>
-        </defs>
         {grid.map((g) => (
           <g key={g}>
             <line x1={padL} x2={W - padR} y1={y(g)} y2={y(g)} stroke="var(--ink)" strokeOpacity="0.12" strokeDasharray="3 4" />
             <text x={padL - 6} y={y(g) + 4} textAnchor="end" fontSize="10" fill="var(--ink-faint)">{g}</text>
           </g>
         ))}
-        <path d={`${line} L ${pts[pts.length - 1].x} ${H - padB} L ${pts[0].x} ${H - padB} Z`} fill="url(#dashArea)" />
+        <path d={`${line} L ${pts[pts.length - 1].x} ${H - padB} L ${pts[0].x} ${H - padB} Z`} fill={BLUE} fillOpacity="0.16" />
         <path d={line} fill="none" stroke={BLUE} strokeWidth="2.6" strokeLinecap="round" />
         {hover != null && <line x1={pts[hover].x} x2={pts[hover].x} y1={padT} y2={H - padB} stroke="var(--ink)" strokeOpacity="0.3" strokeDasharray="3 3" />}
         {days.map((d, i) => (
@@ -453,47 +440,31 @@ function LineChart({ days, hover, setHover }) {
   );
 }
 
-function Donut({ total, parts }) {
-  const R = 52;
-  const C = 2 * Math.PI * R;
-  let offset = 0;
+function Watchlist({ items, members, onOpen, showWho }) {
+  if (items.length === 0) return <MascotNote name="cheer" anim="float" width={84} text="ไม่มีงานเร่งด่วน" sub="ไม่มีงานเกินกำหนดหรือใกล้ครบกำหนดใน 7 วัน" />;
+  const byId = Object.fromEntries(members.map((m) => [m.id, m]));
+  const label = (it) => {
+    if (it.late) return it.diff < 0 ? `เกินกำหนด ${-it.diff} วัน` : "เกินกำหนดวันนี้";
+    if (it.diff === 0) return "ครบกำหนดวันนี้";
+    if (it.diff === 1) return "ครบกำหนดพรุ่งนี้";
+    return `อีก ${it.diff} วัน`;
+  };
   return (
-    <div style={S.donutWrap}>
-      <svg viewBox="0 0 140 140" width="150" height="150" style={{ flexShrink: 0 }} role="img" aria-label="สัดส่วนสถานะงาน">
-        <circle cx="70" cy="70" r={R} fill="none" stroke="var(--ink)" strokeOpacity="0.08" strokeWidth="20" />
-        {total > 0 &&
-          parts.map((p) => {
-            const len = (p.n / total) * C;
-            const el = (
-              <circle
-                key={p.label}
-                cx="70"
-                cy="70"
-                r={R}
-                fill="none"
-                stroke={p.color}
-                strokeWidth="20"
-                strokeDasharray={`${len} ${C - len}`}
-                strokeDashoffset={-offset}
-                transform="rotate(-90 70 70)"
-              />
-            );
-            offset += len;
-            return el;
-          })}
-        <text x="70" y="64" textAnchor="middle" fontSize="10" fill="var(--ink-soft)">จำนวนงานทั้งหมด</text>
-        <text x="70" y="86" textAnchor="middle" fontSize="24" fontWeight="700" fill="var(--ink)">{total}</text>
-      </svg>
-      <div style={S.legend}>
-        {parts.map((p) => (
-          <div key={p.label} style={S.legendRow}>
-            <span style={{ ...S.legendDot, background: p.color }} />
-            <span style={{ flex: 1 }}>{p.label}</span>
-            <b>{total ? Math.round((p.n / total) * 100) : 0}%</b>
-            <span style={S.muted}>({p.n})</span>
-          </div>
-        ))}
-      </div>
+    <div style={S.watchList}>
+      {items.slice(0, 8).map((it) => {
+        const who = showWho && it.task.assigneeId ? byId[it.task.assigneeId] : null;
+        return (
+          <button key={it.task.id} type="button" onClick={() => onOpen(it.task)} style={S.watchRow} title={it.task.title}>
+            <span style={{ ...S.watchDot, background: it.late ? RED : AMBER }} />
+            <span style={S.watchMain}>
+              <span style={S.watchTitle}>{it.task.title}</span>
+              {who && <span style={S.muted}>{who.name || who.username}</span>}
+            </span>
+            <span style={{ ...S.duePill, ...(it.late ? S.duePillLate : {}) }}>{label(it)}</span>
+          </button>
+        );
+      })}
+      {items.length > 8 && <span style={S.muted}>+ อีก {items.length - 8} งาน</span>}
     </div>
   );
 }
@@ -548,7 +519,7 @@ const NOTE_COLORS = { yellow: AMBER, blue: BLUE, green: GREEN, pink: "#E8829B", 
 
 function NoteWall({ notes }) {
   const list = [...notes].sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0)).slice(0, 6);
-  if (list.length === 0) return <p style={S.muted}>ยังไม่มีโน้ต — ไปจดที่หน้า Task แล้วจะมาแปะที่นี่ ✨</p>;
+  if (list.length === 0) return <p style={S.muted}>ยังไม่มีโน้ต — ไปจดที่หน้า Task แล้วจะมาแปะที่นี่</p>;
   const fallback = [AMBER, BLUE, "#E8829B", GREEN, "#9B87D8", AMBER];
   return (
     <div style={S.wall}>
@@ -559,7 +530,7 @@ function NoteWall({ notes }) {
         return (
           <div key={n.id} style={{ ...S.sticky, background: tint(color, 30), borderColor: tint(color, 70), transform: `rotate(${rot}deg)` }}>
             <span style={S.tape} />
-            {n.pinned && <span style={S.stickyPin}>📌</span>}
+            {n.pinned && <span style={S.stickyPin} aria-label="ปักหมุด" />}
             {n.title && <b style={S.stickyTitle}>{n.title}</b>}
             <span style={{ ...S.stickyText, ...(n.type === "todo" && n.done ? { textDecoration: "line-through", opacity: 0.6 } : {}) }}>
               {n.type === "todo" ? (n.done ? "☑ " : "☐ ") : ""}
@@ -576,13 +547,23 @@ function DashStyles() {
   return (
     <style>{`
       .dash-card { transition: transform 120ms ease, box-shadow 120ms ease; }
-      .dash-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(53,59,70,0.12); }
+      .dash-card:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 0 var(--ink) !important; }
+      .dash-statusbtn:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 0 var(--ink); }
       @media (max-width: 1000px) {
         .dash-check-row { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
         .dash-check-row > section:last-child { grid-column: 1 / -1; }
       }
       @media (max-width: 640px) {
         .dash-check-row { grid-template-columns: 1fr !important; }
+        /* status boxes become one row each: number on the left, tag + share on the right */
+        .dash-status-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
+        .dash-status-grid > * {
+          display: grid !important; grid-template-columns: 56px 1fr; grid-template-rows: auto auto;
+          column-gap: 14px; row-gap: 4px; align-items: center; text-align: left; padding: 12px 16px !important;
+        }
+        .dash-status-num { grid-row: 1 / span 2; text-align: center; font-size: 32px; }
+        .dash-status-pill { justify-self: start; white-space: nowrap; }
+        .dash-status-sub { white-space: nowrap; }
       }
       @media (max-width: 900px) {
         .dash-head { flex-direction: column; align-items: flex-start !important; }
@@ -617,52 +598,53 @@ const S = {
   emptyText: { fontFamily: "'Itim', cursive", fontSize: 15, color: "var(--ink-soft)", margin: 0, maxWidth: 420 },
   emptyBtn: { fontSize: 15, fontWeight: 700, color: "#FFFDF8", background: "var(--accent-color)", padding: "10px 24px" },
 
-  chip: { fontFamily: "'Itim', cursive", fontSize: 11.5, fontWeight: 700, borderRadius: 999, padding: "3px 10px", whiteSpace: "nowrap", flexShrink: 0, border: "none" },
+  chip: { fontFamily: "'Itim', cursive", fontSize: 12.5, fontWeight: 700, borderRadius: 999, padding: "3px 10px", whiteSpace: "nowrap", flexShrink: 0, border: "none" },
   chipBtn: { cursor: "pointer" },
 
-  card: { background: "var(--bg-surface)", border: `1.5px solid ${BORDER}`, borderRadius: 24, padding: "20px 22px", boxSizing: "border-box", minWidth: 0, boxShadow: "0 2px 10px rgba(53,59,70,0.06)" },
-  cardHead: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, paddingBottom: 12, marginBottom: 14, borderBottom: `1px solid ${BORDER}` },
-  cardTitle: { fontFamily: "'Itim', cursive", fontSize: 17, fontWeight: 700, color: "var(--ink)", margin: 0, display: "flex", alignItems: "center", gap: 8 },
-  cardIcon: { fontSize: 15 },
+  card: { background: "var(--bg-surface)", border: "2.5px solid var(--ink)", borderRadius: "22px 8px 20px 10px / 10px 20px 8px 22px", padding: "0 22px 20px", boxSizing: "border-box", minWidth: 0, boxShadow: "4px 4px 0 0 var(--ink)", overflow: "hidden" },
+  cardHead: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "12px 22px", margin: "0 -22px 16px", borderBottom: "2.5px solid var(--ink)" },
+  cardTitle: { fontFamily: "'Itim', cursive", fontSize: 18, fontWeight: 700, color: "var(--ink)", margin: 0, display: "flex", alignItems: "center", gap: 8 },
   muted: { fontFamily: "'Itim', cursive", fontSize: 12.5, color: "var(--ink-faint)", margin: 0 },
 
   twoCol: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: 20, marginBottom: 20 },
   twoColRev: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: 20, marginBottom: 20 },
 
   statusGrid: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 18 },
-  statusBox: { borderWidth: 1.5, borderStyle: "solid", borderRadius: 18, padding: "14px 8px", display: "flex", flexDirection: "column", alignItems: "center", gap: 8 },
+  statusBox: { borderWidth: 2, borderStyle: "solid", borderRadius: 18, padding: "14px 8px", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, fontFamily: "inherit", color: "var(--ink)" },
+  statusBtn: { cursor: "pointer", transition: "transform 120ms ease, box-shadow 120ms ease" },
   statusNum: { fontSize: 34, fontWeight: 700, lineHeight: 1 },
   statusPill: { fontSize: 11.5, fontWeight: 700, background: "var(--bg-surface)", borderWidth: 1.5, borderStyle: "solid", borderRadius: 999, padding: "2px 10px" },
-  statusSub: { fontSize: 12 },
-  balanceHead: { display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", fontSize: 12, color: "var(--ink-soft)", marginBottom: 8 },
-  balanceTrack: { display: "flex", height: 10, borderRadius: 999, overflow: "hidden", background: SOFT },
-
+  statusSub: { fontSize: 12, color: "var(--ink-soft)" },
   wlHead: { display: "flex", alignItems: "center", gap: 8, marginBottom: 6, fontSize: 13.5 },
   wlAvatar: { width: 28, height: 28, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "var(--ink)", flexShrink: 0 },
   wlName: { fontWeight: 700, color: "var(--ink)" },
   wlTrack: { height: 10, borderRadius: 999, background: SOFT, overflow: "hidden" },
 
   checkRow: { display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr)) minmax(0, 1.9fr)", gap: 16, marginBottom: 20 },
-  checkCol: { background: "var(--bg-surface)", border: `1.5px solid ${BORDER}`, borderRadius: 20, padding: "16px 16px 14px", minWidth: 0, boxShadow: "0 2px 10px rgba(53,59,70,0.06)" },
-  checkTitle: { fontFamily: "'Itim', cursive", fontSize: 17, fontWeight: 700, margin: 0 },
-  checkCount: { fontSize: 12, color: "var(--ink-faint)", margin: "0 0 10px" },
+  checkCol: { background: "var(--bg-surface)", border: "2.5px solid var(--ink)", borderRadius: "20px 8px 18px 10px / 10px 18px 8px 20px", padding: "0 16px 14px", minWidth: 0, boxShadow: "4px 4px 0 0 var(--ink)", overflow: "hidden" },
+  checkBand: { display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, padding: "10px 16px", margin: "0 -16px 12px", borderBottom: "2.5px solid var(--ink)" },
+  checkTitle: { fontFamily: "'Itim', cursive", fontSize: 17, fontWeight: 700, margin: 0, color: "var(--ink)" },
+  checkCount: { fontFamily: "'Itim', cursive", fontSize: 12.5, color: "var(--ink-soft)" },
   checkList: { display: "flex", flexDirection: "column", gap: 8 },
   checkItem: { display: "flex", alignItems: "center", gap: 8, minWidth: 0 },
-  box: { width: 18, height: 18, borderRadius: 5, borderWidth: 1.5, borderStyle: "solid", borderColor: "var(--ink-soft)", background: "transparent", color: "#FFFDF8", fontSize: 11, fontWeight: 700, lineHeight: 1, cursor: "pointer", padding: 0, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" },
-  boxOn: { background: GREEN, borderColor: GREEN },
+  box: { width: 18, height: 18, borderRadius: 6, borderWidth: 2, borderStyle: "solid", borderColor: "var(--ink)", background: "transparent", color: "#FFFDF8", fontSize: 11, fontWeight: 700, lineHeight: 1, cursor: "pointer", padding: 0, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" },
+  boxOn: { background: GREEN, borderColor: "var(--ink)" },
   checkText: { fontFamily: "'Itim', cursive", fontSize: 13, color: "var(--ink)", background: "transparent", border: "none", padding: 0, cursor: "pointer", textAlign: "left", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 },
   lineCard: { minWidth: 0 },
   tooltip: { position: "absolute", top: 0, transform: "translateX(-50%)", background: "var(--ink)", color: "var(--bg-page)", fontSize: 11.5, padding: "4px 10px", borderRadius: 8, whiteSpace: "nowrap", pointerEvents: "none" },
 
-  donutWrap: { flex: 1, display: "flex", alignItems: "center", gap: 24, flexWrap: "wrap", justifyContent: "center" },
-  legend: { display: "flex", flexDirection: "column", gap: 10, minWidth: 160, flex: 1, fontSize: 13.5, color: "var(--ink)" },
-  legendRow: { display: "flex", alignItems: "center", gap: 8 },
-  legendDot: { width: 10, height: 10, borderRadius: "50%", flexShrink: 0 },
+  watchList: { display: "flex", flexDirection: "column", gap: 8 },
+  watchRow: { display: "flex", alignItems: "center", gap: 10, width: "100%", textAlign: "left", fontFamily: "'Itim', cursive", color: "var(--ink)", background: SOFT, border: "1.5px solid transparent", borderRadius: 14, padding: "8px 12px", cursor: "pointer" },
+  watchDot: { width: 10, height: 10, borderRadius: "50%", border: "1.5px solid var(--ink)", flexShrink: 0 },
+  watchMain: { display: "flex", flexDirection: "column", minWidth: 0, flex: 1 },
+  watchTitle: { fontSize: 14, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  duePill: { fontSize: 12, fontWeight: 700, color: "var(--ink)", background: tint(AMBER, 40), border: "1.5px solid var(--ink)", borderRadius: 999, padding: "2px 10px", flexShrink: 0, whiteSpace: "nowrap" },
+  duePillLate: { background: tint(RED, 28), color: RED },
 
   wall: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 16, padding: "6px 4px 4px" },
   sticky: { position: "relative", borderWidth: 1.5, borderStyle: "solid", borderRadius: 6, padding: "20px 12px 12px", display: "flex", flexDirection: "column", gap: 4, minHeight: 90, boxShadow: "2px 3px 0 rgba(53,59,70,0.14)" },
   tape: { position: "absolute", top: -8, left: "50%", marginLeft: -22, width: 44, height: 14, background: "color-mix(in srgb, var(--bg-surface) 70%, transparent)", border: "1px solid color-mix(in srgb, var(--ink) 15%, transparent)", transform: "rotate(-3deg)" },
-  stickyPin: { position: "absolute", top: 4, right: 6, fontSize: 12 },
+  stickyPin: { position: "absolute", top: 6, right: 8, width: 10, height: 10, borderRadius: "50%", background: RED, border: "1.5px solid var(--ink)" },
   stickyTitle: { fontFamily: "'Itim', cursive", fontSize: 13, color: "var(--ink)" },
   stickyText: { fontFamily: "'Itim', cursive", fontSize: 13, color: "var(--ink)", display: "-webkit-box", WebkitLineClamp: 4, WebkitBoxOrient: "vertical", overflow: "hidden", lineHeight: 1.45 },
 };

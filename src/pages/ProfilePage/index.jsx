@@ -12,6 +12,7 @@ import {
 import ActivityHeatmap from "../../components/profile/ActivityHeatmap";
 import MoodCalendar from "../../components/mood/MoodCalendar";
 import { isPopupEnabled, setPopupEnabled } from "../../lib/mood";
+import AvatarCropModal from "../../components/common/AvatarCropModal";
 import styles from "./styles";
 
 const PROVIDER_LABEL = {
@@ -29,6 +30,7 @@ const MAX_BIO_LENGTH = 280;
 const PRIVACY_TOGGLES = [
   { id: "org", label: "มหาวิทยาลัย/องค์กร", desc: "ซ่อนชื่อมหาวิทยาลัยหรือองค์กรของคุณ" },
   { id: "bio", label: "แนะนำตัว", desc: "ซ่อนข้อความแนะนำตัวของคุณ" },
+  { id: "activity", label: "กิจกรรมการเข้าใช้งาน", desc: "ซ่อนกราฟการเข้าใช้งานรายวันของคุณไม่ให้เพื่อนเห็น" },
 ];
 
 function persistUser(user) {
@@ -126,15 +128,24 @@ export default function ProfilePage() {
     setSettingsOpen(true);
   }
 
-  async function handleAvatarChange(e) {
+  // Picking a photo first opens the crop/zoom editor; only the framed
+  // result is uploaded.
+  const [cropFile, setCropFile] = useState(null);
+
+  function handleAvatarChange(e) {
     const file = e.target.files?.[0];
     e.target.value = ""; // allow picking the same file again later
     if (!file) return;
+    setAvatarError("");
+    setCropFile(file);
+  }
 
+  async function handleAvatarCropped(file) {
     setAvatarError("");
     setAvatarUploading(true);
     try {
       const { user: updated } = await uploadAvatar(file);
+      setCropFile(null);
       setUser(updated);
       persistUser(updated);
     } catch (err) {
@@ -281,6 +292,15 @@ export default function ProfilePage() {
               />
             </div>
             {avatarError && <span style={styles.errorText}>{avatarError}</span>}
+            {cropFile && (
+              <AvatarCropModal
+                file={cropFile}
+                saving={avatarUploading}
+                error={avatarError}
+                onCancel={() => setCropFile(null)}
+                onConfirm={handleAvatarCropped}
+              />
+            )}
 
             <h1 style={styles.sideName}>{user?.name}</h1>
             {user?.username && <p style={styles.sideUsername}>@{user.username}</p>}

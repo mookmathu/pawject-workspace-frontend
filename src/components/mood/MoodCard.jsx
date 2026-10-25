@@ -5,7 +5,7 @@ import MoodImage from "./MoodImage";
 import MoodIcon from "./MoodIcon";
 import EditIcon from "../common/EditIcon";
 
-const CSS = `
+export const MOOD_CSS = `
 .mood-card{position:relative;overflow:hidden;padding:24px 28px 24px;margin-bottom:20px;color:var(--ink);
   background:var(--bg-surface);
   border:2px solid var(--ink);border-radius:26px;box-shadow:4px 4px 0 0 var(--ink)}
@@ -17,23 +17,19 @@ const CSS = `
 .mood-card-sub{margin:2px 0 0;font-size:14px;color:var(--ink-soft)}
 
 /* mood tiles */
-.mood-tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.mood-tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
 .mood-tile{position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;padding:20px 8px 16px;font-family:inherit;color:var(--ink);cursor:pointer;
-  background:linear-gradient(160deg,color-mix(in srgb,var(--tint) 34%,var(--bg-surface)) 0%,color-mix(in srgb,var(--tint) 12%,var(--bg-surface)) 100%);
-  border:2px solid color-mix(in srgb,var(--tint) 75%,transparent);border-radius:22px;transition:transform 150ms cubic-bezier(.3,1.6,.5,1),box-shadow 150ms ease,border-color 150ms ease}
-.mood-tile img{width:78px;height:78px;padding:10px;box-sizing:border-box;border-radius:50%;
-  background:radial-gradient(circle at 32% 28%,color-mix(in srgb,var(--tint) 24%,#fff) 0%,color-mix(in srgb,var(--tint) 62%,var(--bg-surface)) 100%);
-  border:4px solid color-mix(in srgb,#fff 82%,transparent);box-shadow:0 8px 16px -8px color-mix(in srgb,var(--tint) 100%,#000);transition:transform 180ms cubic-bezier(.3,1.7,.5,1)}
-.mood-tile span{white-space:nowrap;padding:4px 16px;font-size:15px;font-weight:700;background:color-mix(in srgb,var(--tint) 52%,var(--bg-surface));border-radius:14px 18px 12px 20px / 12px 16px 18px 12px;transition:background-color 150ms ease}
-.mood-tile:hover{transform:translateY(-4px);box-shadow:0 12px 18px -12px color-mix(in srgb,var(--ink) 70%,transparent)}
-.mood-tile:hover img{transform:scale(1.08) rotate(-4deg)}
-.mood-tile.is-on{border-color:color-mix(in srgb,var(--tint) 40%,var(--ink));box-shadow:0 0 0 3px color-mix(in srgb,var(--tint) 55%,transparent),0 12px 20px -12px color-mix(in srgb,var(--ink) 70%,transparent);transform:translateY(-4px)}
-.mood-tile.is-on img{transform:scale(1.1)}
+  background:color-mix(in srgb,var(--tint) 34%,var(--bg-surface));
+  border:2.5px solid var(--ink);border-radius:20px;box-shadow:3px 3px 0 0 var(--ink);transition:transform 130ms ease,box-shadow 130ms ease,background-color 130ms ease}
+.mood-tile img{width:68px;height:68px;padding:0;box-sizing:border-box;background:none;border:none;box-shadow:none;transition:transform 160ms cubic-bezier(.3,1.7,.5,1)}
+.mood-tile span{white-space:nowrap;padding:3px 12px;font-size:15px;font-weight:700;background:var(--bg-surface);border:2px solid var(--ink);border-radius:999px}
+.mood-tile:hover:not(:disabled){transform:translate(-2px,-2px);box-shadow:5px 5px 0 0 var(--ink)}
+.mood-tile:hover img{transform:scale(1.08)}
+.mood-tile.is-on{background:color-mix(in srgb,var(--tint) 75%,var(--bg-surface));transform:translate(1px,1px);box-shadow:1px 1px 0 0 var(--ink)}
 .mood-tile.is-on span{background:var(--ink);color:var(--bg-surface)}
 .mood-tile:disabled{opacity:.6;cursor:default}
-.mood-deco{position:absolute;font-style:normal;line-height:0;color:color-mix(in srgb,var(--tint) 60%,var(--ink) 40%);opacity:.85;pointer-events:none}
-.mood-deco-tl{top:20px;left:14px}.mood-deco-tr{top:22px;right:14px}.mood-deco-br{top:74px;right:12px}
-.mood-check{position:absolute;top:-9px;right:-7px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--accent-color);border:2.5px solid var(--bg-surface);box-shadow:0 3px 6px -2px rgba(0,0,0,.35)}
+.mood-deco{display:none}
+.mood-check{position:absolute;top:-9px;right:-7px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--accent-color);border:2.5px solid var(--ink)}
 
 /* note + actions */
 .mood-note{position:relative;margin-top:18px}
@@ -41,15 +37,17 @@ const CSS = `
 .mood-note-input:focus{border-color:var(--accent-color);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent-color) 22%,transparent)}
 .mood-note-paw{position:absolute;right:16px;top:14px;color:var(--ink-faint);opacity:.55}
 .mood-note-count{position:absolute;right:16px;bottom:8px;margin:0;font-size:12px;color:var(--ink-faint)}
-.mood-attach{display:inline-flex;align-items:center;gap:8px;height:52px;padding:0 22px;font-family:inherit;font-size:16px;font-weight:700;color:var(--accent-color);cursor:pointer;background:color-mix(in srgb,var(--bg-surface) 88%,transparent);border:1.8px solid color-mix(in srgb,var(--accent-color) 35%,transparent);border-radius:999px;transition:transform 140ms ease,background-color 140ms ease}
+.mood-attach{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 16px;font-family:inherit;font-size:14px;font-weight:700;color:var(--accent-color);cursor:pointer;background:color-mix(in srgb,var(--bg-surface) 88%,transparent);border:1.8px solid color-mix(in srgb,var(--accent-color) 35%,transparent);border-radius:999px;transition:transform 140ms ease,background-color 140ms ease}
 .mood-attach:hover{transform:translateY(-2px);background:var(--bg-surface)}
-.mood-save{display:inline-flex;align-items:center;justify-content:center;gap:12px;min-width:280px;height:60px;padding:0 36px;font-family:inherit;font-size:19px;font-weight:700;color:#FFFDF8;cursor:pointer;white-space:pre;
-  background:linear-gradient(135deg,color-mix(in srgb,var(--accent-color) 80%,#fff) 0%,var(--accent-color) 100%);border:2.5px solid var(--ink);border-radius:999px;box-shadow:0 5px 0 0 var(--ink);transition:transform 140ms cubic-bezier(.3,1.6,.5,1),box-shadow 140ms ease}
-.mood-save:hover:not(:disabled){transform:translateY(-3px) rotate(-1deg);box-shadow:0 8px 0 0 var(--ink)}
+.mood-save{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-width:0;height:44px;padding:0 24px;font-family:inherit;font-size:16px;font-weight:700;color:#FFFDF8;cursor:pointer;white-space:pre;
+  background:var(--accent-color);border:2.5px solid var(--ink);border-radius:999px;box-shadow:0 3px 0 0 var(--ink);transition:transform 140ms cubic-bezier(.3,1.6,.5,1),box-shadow 140ms ease}
+.mood-save:hover:not(:disabled){transform:translateY(-2px) rotate(-1deg);box-shadow:0 5px 0 0 var(--ink)}
+.mood-save svg,.mood-attach svg{width:18px;height:18px}
 .mood-save:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 0 var(--ink)}
 .mood-save:disabled{opacity:.5;cursor:not-allowed;box-shadow:0 3px 0 0 color-mix(in srgb,var(--ink) 40%,transparent)}
 .mood-done{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-@media (max-width:760px){.mood-tiles{gap:6px}.mood-tile{padding:16px 0 12px;gap:8px;min-width:0}.mood-tile img{width:52px;height:52px;padding:7px}.mood-tile span{font-size:11.5px;padding:3px 7px}.mood-deco{display:none}}
+@media (max-width:760px){.mood-tiles{gap:6px}.mood-tile{padding:16px 0 12px;gap:8px;min-width:0}.mood-tile img{width:48px;height:48px}.mood-tile span{font-size:11.5px;padding:3px 7px}.mood-deco{display:none}}
+@media (max-width:430px){.mood-tile span{font-size:10.5px;padding:2px 4px;border-width:1.5px}}
 @media (max-width:560px){.mood-card{padding:18px 14px}.mood-save{width:100%;min-width:0}.mood-attach{width:100%;justify-content:center}.mood-card-title{font-size:19px}}
 `;
 
@@ -69,7 +67,7 @@ export default function MoodCard({ entry, onChange }) {
 
   return (
     <div className="mood-card">
-      <style>{CSS}</style>
+      <style>{MOOD_CSS}</style>
       <div className="mood-card-head">
         {m && !editing ? (
           <MoodIcon mood={m.key} size={52} />

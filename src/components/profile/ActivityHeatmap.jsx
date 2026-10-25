@@ -122,7 +122,7 @@ export default function ActivityHeatmap({ data, loading, selectedYear, onSelectY
   const H = TOP + 7 * STEP;
 
   return (
-    <div className="profile-activity" style={S.wrap}>
+    <div className="profile-activity" style={{ ...S.wrap, "--accent-color": "#E07F52" }}>
       <div style={S.card}>
         <div style={S.head}>
           <h2 style={S.title}>{title}</h2>

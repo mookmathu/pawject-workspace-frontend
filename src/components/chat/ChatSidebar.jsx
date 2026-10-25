@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import styles from "./styles";
 import { resolveAvatarUrl } from "../../lib/api";
 import { useUserProfile } from "../../lib/UserProfileContext";
@@ -25,13 +25,37 @@ function Avatar({ imageUrl, name }) {
 // (WorkspacesContext, getFriends) — this component just renders them.
 export default function ChatSidebar({ workspaces, friends, selected, onSelect, unreadCounts, onlineUserIds }) {
   const { openUserProfile } = useUserProfile();
-  const groupWorkspaces = workspaces.filter((w) => !w.isPersonal);
+  const [query, setQuery] = useState("");
+  const q = query.trim().toLowerCase();
+  const match = (name) => !q || (name || "").toLowerCase().includes(q);
+  const groupWorkspaces = workspaces.filter((w) => !w.isPersonal && match(w.name));
+  const visibleFriends = friends.filter((f) => match(f.name));
 
   return (
-    <div className="card-clean chat-sidebar" style={styles.sidebar}>
-      <p style={styles.sidebarGroupTitle}>กลุ่ม</p>
+    <div className="chat-sidebar" style={styles.sidebar}>
+      <div style={styles.searchWrap}>
+        <span style={styles.searchIcon} aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <circle cx="11" cy="11" r="7" />
+            <path d="M20 20l-3.5-3.5" />
+          </svg>
+        </span>
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="ค้นหากลุ่มหรือเพื่อน"
+          aria-label="ค้นหาแชท"
+          style={styles.searchInput}
+        />
+      </div>
+
+      <p style={styles.sidebarGroupTitle}>
+        <span>กลุ่ม</span>
+        {groupWorkspaces.length > 0 && <span style={styles.sidebarCount}>{groupWorkspaces.length}</span>}
+      </p>
       {groupWorkspaces.length === 0 ? (
-        <p style={styles.sidebarEmpty}>ยังไม่มีกลุ่มที่เข้าร่วม</p>
+        <p style={styles.sidebarEmpty}>{q ? "ไม่พบกลุ่มที่ค้นหา" : "ยังไม่มีกลุ่มที่เข้าร่วม"}</p>
       ) : (
         <ul style={styles.sidebarList}>
           {groupWorkspaces.map((ws) => {
@@ -54,12 +78,15 @@ export default function ChatSidebar({ workspaces, friends, selected, onSelect, u
         </ul>
       )}
 
-      <p style={styles.sidebarGroupTitle}>แชทส่วนตัว</p>
-      {friends.length === 0 ? (
-        <p style={styles.sidebarEmpty}>ยังไม่มีเพื่อน</p>
+      <p style={styles.sidebarGroupTitle}>
+        <span>แชทส่วนตัว</span>
+        {visibleFriends.length > 0 && <span style={styles.sidebarCount}>{visibleFriends.length}</span>}
+      </p>
+      {visibleFriends.length === 0 ? (
+        <p style={styles.sidebarEmpty}>{q ? "ไม่พบเพื่อนที่ค้นหา" : "ยังไม่มีเพื่อน"}</p>
       ) : (
         <ul style={styles.sidebarList}>
-          {friends.map((f) => {
+          {visibleFriends.map((f) => {
             const isActive = selected?.type === "dm" && selected.id === f.id;
             const unread = unreadCounts[`dm:${f.id}`] || 0;
             const isOnline = onlineUserIds?.has(f.id);
