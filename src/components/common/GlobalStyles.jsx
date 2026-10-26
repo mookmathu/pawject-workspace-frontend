@@ -54,6 +54,7 @@ export default function GlobalStyles() {
       }
 
       /* Dark-mode fixes for assets/colors that are not driven by the CSS vars */
+      :root[data-theme="dark"] img.eye-icon,
       :root[data-theme="dark"] img[alt="seen"],
       :root[data-theme="dark"] img[alt="Close eye"] { filter: invert(1); }
       :root[data-theme="dark"] .social-btn { background: #FFFDF8 !important; }

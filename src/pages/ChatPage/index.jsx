@@ -280,6 +280,7 @@ export default function ChatPage() {
         />
         <ChatWindow
           target={selected}
+          targetAvatarUrl={selected?.type === "dm" ? friends.find((f) => f.id === selected.id)?.avatarUrl : null}
           targetOnline={targetOnline}
           messages={messages}
           myUserId={myUserId}

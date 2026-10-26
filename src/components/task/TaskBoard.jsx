@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import UserAvatar from "../common/UserAvatar";
 import { useNavigate } from "react-router-dom";
 import { useWorkspaces } from "../../lib/WorkspacesContext";
 import {
@@ -778,7 +779,7 @@ export default function TaskBoard() {
                   <td style={styles.td}>
                     {t.assignee ? (
                       <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                        <span style={styles.assigneeAvatar}>{t.assignee.name?.charAt(0).toUpperCase() || "?"}</span>
+                        <UserAvatar avatarUrl={t.assignee.avatarUrl} name={t.assignee.name} style={styles.assigneeAvatar} />
                         @{t.assignee.username}
                       </span>
                     ) : "—"}
@@ -1522,9 +1523,7 @@ export default function TaskBoard() {
                         )}
                       </div>
                       {task.assignee && (
-                        <span style={styles.assigneeAvatar} title={`@${task.assignee.username}`}>
-                          {task.assignee.name?.charAt(0).toUpperCase() || "?"}
-                        </span>
+                        <UserAvatar avatarUrl={task.assignee.avatarUrl} name={task.assignee.name} style={styles.assigneeAvatar} title={`@${task.assignee.username}`} />
                       )}
                     </div>
                   </div>

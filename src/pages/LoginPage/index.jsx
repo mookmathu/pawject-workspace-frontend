@@ -172,9 +172,9 @@ export default function DoodleLoginPage() {
                   className="lg-eye"
                 >
                   {showPassword ? (
-                    <img src={seenIcon} alt="seen" style={{ width: 20, height: 20 }} />
+                    <img className="eye-icon" src={seenIcon} alt="" style={{ width: 20, height: 20 }} />
                   ) : (
-                    <img src={closeEyeIcon} alt="Close eye" style={{ width: 20, height: 20 }} />
+                    <img className="eye-icon" src={closeEyeIcon} alt="" style={{ width: 20, height: 20 }} />
                   )}
                 </button>
               </div>

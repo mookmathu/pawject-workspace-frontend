@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getWorkspaceBoard, updateTask } from "../../lib/api";
+import UserAvatar from "../../components/common/UserAvatar";
 import { useWorkspaces } from "../../lib/WorkspacesContext";
 import { setTaskJump } from "../../lib/navJump";
 import { MascotNote } from "../../components/common/Mascot";
@@ -221,15 +222,11 @@ export default function DashboardPage() {
       <div style={S.headRight}>
         {mode === "team" && teams.length > 0 && (
           <div style={S.teamPick}>
-            <select value={activeTeam?.id || ""} onChange={(e) => changeTeam(e.target.value)} style={S.select} aria-label="เลือกกลุ่ม">
-              {teams.map((w) => (
-                <option key={w.id} value={w.id}>{w.name}</option>
-              ))}
-            </select>
+            <TeamPicker teams={teams} activeId={activeTeam?.id || ""} onChange={changeTeam} />
             {members.length > 0 && (
               <span style={S.avatarStack} title={members.map((m) => m.name || m.username).join(", ")}>
                 {members.slice(0, 4).map((m, i) => (
-                  <span key={m.id} style={{ ...S.stackAvatar, marginLeft: i ? -8 : 0 }}>{(m.name || m.username || "?").charAt(0).toUpperCase()}</span>
+                  <UserAvatar key={m.id} avatarUrl={m.avatarUrl} name={m.name || m.username} style={{ ...S.stackAvatar, marginLeft: i ? -8 : 0 }} />
                 ))}
                 {members.length > 4 && <span style={{ ...S.stackAvatar, marginLeft: -8, background: "var(--bg-page)", color: "var(--ink)" }}>+{members.length - 4}</span>}
               </span>
@@ -440,6 +437,57 @@ function LineChart({ days, hover, setHover }) {
   );
 }
 
+// Themed replacement for the native <select>: the browser's own list pops up
+// with a blue system highlight that clashes with the rest of the page.
+function TeamPicker({ teams, activeId, onChange }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const current = teams.find((w) => w.id === activeId) || teams[0];
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const onDown = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    const onKey = (e) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <div className="dash-pick" ref={ref}>
+      <button type="button" className="dash-pick-btn" aria-haspopup="listbox" aria-expanded={open} aria-label="เลือกกลุ่ม" onClick={() => setOpen((v) => !v)}>
+        <span className="dash-pick-name">{current?.name}</span>
+        <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" style={{ flexShrink: 0, transform: open ? "rotate(180deg)" : "none", transition: "transform 150ms" }}>
+          <path d="M2 4.2 6 8l4-3.8" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+      {open && (
+        <ul className="dash-pick-list" role="listbox">
+          {teams.map((w) => (
+            <li key={w.id} role="option" aria-selected={w.id === current?.id}>
+              <button
+                type="button"
+                className={`dash-pick-item${w.id === current?.id ? " is-on" : ""}`}
+                onClick={() => {
+                  setOpen(false);
+                  if (w.id !== current?.id) onChange(w.id);
+                }}
+              >
+                {w.name}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 function Watchlist({ items, members, onOpen, showWho }) {
   if (items.length === 0) return <MascotNote name="cheer" anim="float" width={84} text="ไม่มีงานเร่งด่วน" sub="ไม่มีงานเกินกำหนดหรือใกล้ครบกำหนดใน 7 วัน" />;
   const byId = Object.fromEntries(members.map((m) => [m.id, m]));
@@ -475,7 +523,7 @@ function Workload({ mode, tasks, members, doneIds, categories }) {
     rows = members.map((m) => {
       const mine = tasks.filter((t) => t.assigneeId === m.id);
       const done = mine.filter((t) => doneIds.has(t.statusId)).length;
-      return { key: m.id, name: m.name || m.username, sub: `@${m.username}`, n: mine.length, done };
+      return { key: m.id, name: m.name || m.username, sub: `@${m.username}`, avatarUrl: m.avatarUrl, n: mine.length, done };
     });
     const unassigned = tasks.filter((t) => !t.assigneeId);
     if (unassigned.length) rows.push({ key: "none", name: "ยังไม่มอบหมาย", sub: "", n: unassigned.length, done: unassigned.filter((t) => doneIds.has(t.statusId)).length, muted: true });
@@ -497,7 +545,7 @@ function Workload({ mode, tasks, members, doneIds, categories }) {
         return (
           <div key={r.key}>
             <div style={S.wlHead}>
-              <span style={{ ...S.wlAvatar, background: tint(col === "var(--ink-faint)" ? "#888888" : col, 30) }}>{r.name.charAt(0).toUpperCase()}</span>
+              <UserAvatar avatarUrl={r.avatarUrl} name={r.name} style={{ ...S.wlAvatar, background: tint(col === "var(--ink-faint)" ? "#888888" : col, 30) }} />
               <span style={S.wlName}>{r.name}</span>
               {r.sub && <span style={S.muted}>{r.sub}</span>}
               <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8 }}>
@@ -553,6 +601,18 @@ function DashStyles() {
         .dash-check-row { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
         .dash-check-row > section:last-child { grid-column: 1 / -1; }
       }
+      .dash-pick { position: relative; }
+      .dash-pick-btn { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-width: 150px; max-width: 240px;
+        font-family: 'Itim', cursive; font-size: 14px; color: var(--ink); cursor: pointer;
+        background: color-mix(in srgb, var(--accent-color) 14%, var(--bg-surface)); border: 1.5px solid var(--ink); border-radius: 999px; padding: 7px 14px; }
+      .dash-pick-btn:hover { background: color-mix(in srgb, var(--accent-color) 22%, var(--bg-surface)); }
+      .dash-pick-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .dash-pick-list { position: absolute; z-index: 40; top: calc(100% + 6px); left: 0; min-width: 100%; max-width: 280px; max-height: 260px; overflow-y: auto;
+        list-style: none; margin: 0; padding: 6px; background: var(--bg-surface); border: 2px solid var(--ink); border-radius: 16px; box-shadow: 3px 3px 0 0 var(--ink); }
+      .dash-pick-item { display: block; width: 100%; text-align: left; font-family: 'Itim', cursive; font-size: 14px; color: var(--ink); cursor: pointer;
+        background: transparent; border: none; border-radius: 10px; padding: 8px 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .dash-pick-item:hover { background: color-mix(in srgb, var(--accent-color) 14%, var(--bg-surface)); }
+      .dash-pick-item.is-on { background: color-mix(in srgb, var(--accent-color) 24%, var(--bg-surface)); font-weight: 700; }
       @media (max-width: 640px) {
         .dash-check-row { grid-template-columns: 1fr !important; }
         /* status boxes become one row each: number on the left, tag + share on the right */

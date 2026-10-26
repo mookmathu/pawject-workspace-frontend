@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getSocket } from "../../lib/socket";
+import { getFriends } from "../../lib/api";
+import UserAvatar from "./UserAvatar";
 import { setChatJump } from "../../lib/navJump";
 
 /**
@@ -51,6 +53,8 @@ export default function ChatToast() {
   const pathRef = useRef(pathname);
   pathRef.current = pathname;
   const [toasts, setToasts] = useState([]);
+  const [avatars, setAvatars] = useState({}); // friend id → avatarUrl, loaded the first time a DM toast shows
+  const avatarsLoaded = useRef(false);
   const timers = useRef({});
 
   function dismiss(id) {
@@ -72,6 +76,14 @@ export default function ChatToast() {
       if (!n || n.type !== "message") return;
       // Already in the chat: the conversation itself and its unread badges show it.
       if (pathRef.current === "/chat") return;
+      if (n.link?.type === "dm" && !avatarsLoaded.current) {
+        avatarsLoaded.current = true;
+        getFriends()
+          .then(({ friends }) => setAvatars(Object.fromEntries((friends || []).map((f) => [f.id, f.avatarUrl]))))
+          .catch(() => {
+            avatarsLoaded.current = false;
+          });
+      }
       const id = `${n.id ?? Date.now()}`;
       const key = n.link?.type === "dm" ? `dm:${n.link.userId}` : `ws:${n.link?.workspaceId}`;
       setToasts((prev) => {
@@ -122,7 +134,7 @@ export default function ChatToast() {
               onMouseEnter={() => clearTimeout(timers.current[t.id])}
               onMouseLeave={() => schedule(t.id)}
             >
-              <span className="ct-avatar">{(name || "?").trim().charAt(0).toUpperCase()}</span>
+              <UserAvatar className="ct-avatar" avatarUrl={n.link?.type === "dm" ? avatars[n.link.userId] : null} name={name} />
               <div className="ct-main">
                 <div className="ct-title">{name}</div>
                 {isGroup && <div className="ct-sub">ในกลุ่ม {n.link.workspaceName}</div>}

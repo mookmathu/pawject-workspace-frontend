@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import UserAvatar from "../../components/common/UserAvatar";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import shellStyles from "../../components/common/appShellStyles";
 import { useWorkspaces } from "../../lib/WorkspacesContext";
@@ -577,7 +578,7 @@ export default function HomePage() {
       .map((w) => ({ type: "workspace", id: w.id, name: w.name, count: unreadCounts[`workspace:${w.id}`] })),
     ...friends
       .filter((f) => unreadCounts[`dm:${f.id}`])
-      .map((f) => ({ type: "dm", id: f.id, name: f.name, count: unreadCounts[`dm:${f.id}`] })),
+      .map((f) => ({ type: "dm", id: f.id, name: f.name, avatarUrl: f.avatarUrl, count: unreadCounts[`dm:${f.id}`] })),
   ];
 
   const totalUnread = unreadEntries.reduce((sum, e) => sum + e.count, 0);
@@ -680,7 +681,7 @@ export default function HomePage() {
                         navigate("/chat");
                       }}
                     >
-                      <span style={styles.chatInitial}>{initialOf(entry.name)}</span>
+                      <UserAvatar avatarUrl={entry.type === "dm" ? entry.avatarUrl : null} name={entry.name} style={styles.chatInitial} />
                       <span style={styles.rowMain}>
                         <span style={styles.dashboardTaskTitle}>{entry.name}</span>
                         <span style={styles.dashboardTaskMeta}>{entry.type === "workspace" ? "แชทกลุ่ม" : "ข้อความส่วนตัว"}</span>
@@ -855,9 +856,7 @@ export default function HomePage() {
                 <div style={styles.wsInfo}>
                   <span style={styles.avatarStack}>
                     {(ws.members || []).slice(0, 4).map((m, i) => (
-                      <span key={m.user?.id || i} style={{ ...styles.stackAvatar, marginLeft: i ? -8 : 0 }} title={m.user?.name}>
-                        {initialOf(m.user?.name)}
-                      </span>
+                      <UserAvatar key={m.user?.id || i} avatarUrl={m.user?.avatarUrl} name={m.user?.name} style={{ ...styles.stackAvatar, marginLeft: i ? -8 : 0 }} title={m.user?.name} />
                     ))}
                     {(ws.members || []).length > 4 && (
                       <span style={{ ...styles.stackAvatar, marginLeft: -8, background: "var(--bg-page)", color: "var(--ink)" }}>

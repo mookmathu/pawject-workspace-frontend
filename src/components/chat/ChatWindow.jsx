@@ -3,6 +3,7 @@ import styles from "./styles";
 import { resolveAttachmentUrl, resolveAvatarUrl } from "../../lib/api";
 import { useUserProfile } from "../../lib/UserProfileContext";
 import Mascot from "../common/Mascot";
+import UserAvatar from "../common/UserAvatar";
 import { STICKERS, stickerToken, parseSticker, fitWidth } from "./stickers";
 
 const ICON = { fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round" };
@@ -103,7 +104,7 @@ function Attachment({ mimeType, name, url, onOpenImage }) {
   );
 }
 
-export default function ChatWindow({ target, targetOnline, messages, myUserId, onSend, onTypingChange, typingUserIds, loading }) {
+export default function ChatWindow({ target, targetAvatarUrl, targetOnline, messages, myUserId, onSend, onTypingChange, typingUserIds, loading }) {
   const { openUserProfile } = useUserProfile();
   const [draft, setDraft] = useState("");
   const [pendingFile, setPendingFile] = useState(null);
@@ -264,9 +265,7 @@ export default function ChatWindow({ target, targetOnline, messages, myUserId, o
   return (
     <div className="chat-window" style={styles.window}>
       <div style={styles.windowHeader}>
-        <span style={styles.windowHeaderAvatarFallback} aria-hidden="true">
-          {(target.name || "?").trim().charAt(0).toUpperCase()}
-        </span>
+        <UserAvatar avatarUrl={targetAvatarUrl} name={target.name} style={styles.windowHeaderAvatarFallback} />
         <div style={{ minWidth: 0, flex: 1 }}>
         <div style={styles.windowHeaderTitleRow}>
           {target.type === "dm" ? (
