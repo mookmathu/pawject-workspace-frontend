@@ -140,7 +140,7 @@ export default function AvatarCropModal({ file, onCancel, onConfirm, saving = fa
   return createPortal(
     <div className="avc-backdrop" onMouseDown={() => !saving && onCancel()} role="dialog" aria-modal="true" aria-label="ปรับรูปโปรไฟล์">
       <style>{CSS}</style>
-      <div className="avc-card" onMouseDown={(e) => e.stopPropagation()}>
+      <div role="presentation" className="avc-card" onMouseDown={(e) => e.stopPropagation()}>
         <h3 className="avc-title">ปรับรูปโปรไฟล์</h3>
         <p className="avc-sub">ลากรูปเพื่อเลื่อน และซูมเพื่อเลือกส่วนที่ต้องการ</p>
 
@@ -187,7 +187,7 @@ export default function AvatarCropModal({ file, onCancel, onConfirm, saving = fa
             max={MAX_ZOOM}
             step="0.01"
             value={zoom}
-            onChange={(e) => applyZoom(parseFloat(e.target.value))}
+            onChange={(e) => applyZoom(Number.parseFloat(e.target.value))}
             aria-label="ซูม"
           />
           <button type="button" className="avc-step" onClick={() => applyZoom(zoom * 1.2)} aria-label="ซูมเข้า">

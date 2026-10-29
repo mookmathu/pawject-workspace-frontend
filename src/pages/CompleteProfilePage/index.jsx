@@ -103,7 +103,7 @@ export default function CompleteProfilePage() {
     try {
       const { user } = await completeProfile({ username, orgType, orgName: orgName.trim() });
       localStorage.setItem("crew_user", JSON.stringify(user));
-      navigate("/welcome");
+      void navigate("/welcome");
     } catch (err) {
       setErrors((prev) => ({ ...prev, form: err.message }));
     } finally {

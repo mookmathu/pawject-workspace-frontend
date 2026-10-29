@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { updateBoardNote } from "../../lib/api";
 import { MascotNote } from "../common/Mascot";
+import { stripTags } from "../../lib/html";
 
 function genId() {
   return `blk-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -55,7 +56,7 @@ function timeAgo(iso) {
 }
 
 function stripHtml(html) {
-  return (html || "").replace(/<[^>]*>/g, " ").replace(/&nbsp;/g, " ");
+  return stripTags(html).replace(/&nbsp;/g, " ");
 }
 
 // Runs a rich-text command (bold/italic/foreColor/...) against whatever the

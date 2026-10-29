@@ -98,8 +98,8 @@ export default function EventComposerModal({ date, onClose, onSubmit }) {
   }
 
   return (
-    <div style={styles.overlay} onClick={onClose}>
-      <div style={styles.sheet} onClick={(e) => e.stopPropagation()}>
+    <div role="presentation" style={styles.overlay} onClick={onClose}>
+      <div role="presentation" style={styles.sheet} onClick={(e) => e.stopPropagation()}>
         <div style={styles.topRow}>
           <button type="button" onClick={onClose} style={styles.iconBtn} title="ปิด">
             ×

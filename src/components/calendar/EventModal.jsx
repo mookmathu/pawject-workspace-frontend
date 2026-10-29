@@ -139,8 +139,8 @@ export default function EventModal({ event, onClose, onUpdate, onDelete }) {
         : `${longDate(start)} · ${clock(start)} – ${clock(end)}`;
     }
     return (
-      <div style={styles.overlay} onClick={onClose}>
-        <div style={styles.sheet} onClick={(e) => e.stopPropagation()}>
+      <div role="presentation" style={styles.overlay} onClick={onClose}>
+        <div role="presentation" style={styles.sheet} onClick={(e) => e.stopPropagation()}>
           <button type="button" onClick={onClose} style={styles.closeBtn} title="ปิด">
             ×
           </button>
@@ -198,8 +198,8 @@ export default function EventModal({ event, onClose, onUpdate, onDelete }) {
   }
 
   return (
-    <div style={styles.overlay} onClick={onClose}>
-      <div style={styles.sheet} onClick={(e) => e.stopPropagation()}>
+    <div role="presentation" style={styles.overlay} onClick={onClose}>
+      <div role="presentation" style={styles.sheet} onClick={(e) => e.stopPropagation()}>
         <button type="button" onClick={onClose} style={styles.closeBtn} title="ปิด">
           ×
         </button>

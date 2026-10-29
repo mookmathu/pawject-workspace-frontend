@@ -16,9 +16,9 @@ function getContrastText(hex) {
   if (!hex) return "var(--ink)";
   const clean = hex.replace("#", "");
   const full = clean.length === 3 ? clean.split("").map((c) => c + c).join("") : clean;
-  const r = parseInt(full.substring(0, 2), 16);
-  const g = parseInt(full.substring(2, 4), 16);
-  const b = parseInt(full.substring(4, 6), 16);
+  const r = Number.parseInt(full.substring(0, 2), 16);
+  const g = Number.parseInt(full.substring(2, 4), 16);
+  const b = Number.parseInt(full.substring(4, 6), 16);
   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
   return luminance > 0.6 ? "#353B46" : "#FFFDF8";
 }
@@ -96,7 +96,7 @@ export default function CalendarView() {
       setError("");
     } catch (err) {
       if (err.status === 401) {
-        navigate("/");
+        void navigate("/");
         return;
       }
       setError(err.message);
@@ -129,20 +129,20 @@ export default function CalendarView() {
       setTasksWithDueDate(allTasks.filter((t) => t.dueDate && !t.archivedAt));
     } catch (err) {
       if (err.status === 401) {
-        navigate("/");
+        void navigate("/");
       }
       // otherwise just skip showing tasks on the calendar — not fatal for this view
     }
   }
 
   useEffect(() => {
-    loadEvents();
+    void loadEvents();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [year, month]);
 
   useEffect(() => {
     if (workspacesLoading) return; // wait for the shared workspace list to resolve
-    loadTasks();
+    void loadTasks();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workspacesLoading]);
 
@@ -182,7 +182,7 @@ export default function CalendarView() {
         setError("");
       }
       setComposingDate(null);
-      loadEvents();
+      void loadEvents();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -194,7 +194,7 @@ export default function CalendarView() {
     if (!expandedEvent) return;
     try {
       await updateEvent(expandedEvent.id, patch);
-      loadEvents();
+      void loadEvents();
     } catch (err) {
       setError(err.message);
     }
@@ -205,7 +205,7 @@ export default function CalendarView() {
     try {
       await deleteEvent(expandedEvent.id);
       setExpandedEvent(null);
-      loadEvents();
+      void loadEvents();
     } catch (err) {
       setError(err.message);
     }
@@ -299,9 +299,18 @@ export default function CalendarView() {
           return (
             <div
               key={i}
+              role="button"
+              tabIndex={0}
               className={`cal-day${key === selectedKey ? " is-selected" : ""}`}
               style={{ ...styles.dayCell, ...(cell.currentMonth ? {} : styles.dayCellMuted) }}
               onClick={() => selectDay(cell.dateObj)}
+              onKeyDown={(e) => {
+                // only when the cell itself has focus — its inner "+" button handles its own keys
+                if ((e.key === "Enter" || e.key === " ") && e.target === e.currentTarget) {
+                  e.preventDefault();
+                  selectDay(cell.dateObj);
+                }
+              }}
             >
               <div className="cal-day-top" style={styles.dayTopRow}>
                 <span
@@ -366,7 +375,7 @@ export default function CalendarView() {
                       className="cal-task-chip"
                       onClick={() => {
                         setTaskJump({ workspaceId: item.data.workspaceId, taskId: item.data.id });
-                        navigate("/task");
+                        void navigate("/task");
                       }}
                       style={{
                         ...styles.taskChip,
@@ -454,7 +463,7 @@ export default function CalendarView() {
                       setExpandedEvent(d);
                     } else {
                       setTaskJump({ workspaceId: d.workspaceId, taskId: d.id });
-                      navigate("/task");
+                      void navigate("/task");
                     }
                   }}
                 >

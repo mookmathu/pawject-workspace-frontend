@@ -4,8 +4,8 @@ import GlobalStyles from "../../components/common/GlobalStyles";
 import { CardMascot } from "../../components/common/Mascot";
 import styles from "../LoginPage/styles";
 import { forgotPassword } from "../../lib/api";
+import { isValidEmail } from "../../lib/validation";
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -19,7 +19,7 @@ export default function ForgotPasswordPage() {
       setError("กรุณากรอกอีเมล");
       return;
     }
-    if (!EMAIL_REGEX.test(email.trim())) {
+    if (!isValidEmail(email.trim())) {
       setError("รูปแบบอีเมลไม่ถูกต้อง");
       return;
     }

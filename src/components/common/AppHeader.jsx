@@ -100,8 +100,8 @@ export default function AppHeader() {
   }
 
   useEffect(() => {
-    loadRequests();
-    loadNotifications();
+    void loadRequests();
+    void loadNotifications();
   }, []);
 
   // AppHeader lives for the whole logged-in session (mounted once by
@@ -152,7 +152,7 @@ export default function AppHeader() {
   function handleLogout() {
     localStorage.removeItem("crew_token");
     localStorage.removeItem("crew_user");
-    navigate("/");
+    void navigate("/");
   }
 
   // Marks it read (optimistically — no need to wait on the network for the
@@ -172,13 +172,13 @@ export default function AppHeader() {
     if (!link) return;
     if (link.type === "task") {
       setTaskJump({ workspaceId: link.workspaceId, taskId: link.taskId });
-      navigate("/task");
+      void navigate("/task");
     } else if (link.type === "workspace_chat") {
       setChatJump({ type: "workspace", id: link.workspaceId, name: link.workspaceName });
-      navigate("/chat");
+      void navigate("/chat");
     } else if (link.type === "dm") {
       setChatJump({ type: "dm", id: link.userId, name: link.name });
-      navigate("/chat");
+      void navigate("/chat");
     }
   }
 
@@ -257,7 +257,7 @@ export default function AppHeader() {
                   tabIndex={navOpen ? 0 : -1}
                   onClick={() => {
                     setNavOpen(false);
-                    navigate(path);
+                    void navigate(path);
                   }}
                   style={{
                     ...styles.pillNavItem,
@@ -292,8 +292,8 @@ export default function AppHeader() {
               const opening = !showRequests;
               setShowRequests(opening);
               if (opening) {
-                loadRequests();
-                loadNotifications();
+                void loadRequests();
+                void loadNotifications();
                 // Right-aligned dropdown would run off-screen if the bell
                 // sits near the left edge (e.g. header wrapped to 2 rows).
                 const rect = bellWrapRef.current?.getBoundingClientRect();

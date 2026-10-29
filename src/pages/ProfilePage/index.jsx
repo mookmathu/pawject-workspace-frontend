@@ -78,7 +78,7 @@ export default function ProfilePage() {
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
-    (async () => {
+    void (async () => {
       try {
         const { user } = await getMe();
         setUser(user);
@@ -200,6 +200,7 @@ export default function ProfilePage() {
       ? hiddenFields.filter((f) => f !== fieldId)
       : [...hiddenFields, fieldId];
 
+    const previous = [...hiddenFields];
     setHiddenFields(next); // optimistic
     setPrivacyError("");
     setPrivacySaving(true);
@@ -209,7 +210,7 @@ export default function ProfilePage() {
       persistUser(updated);
       setHiddenFields(Array.isArray(updated.hiddenFields) ? updated.hiddenFields : next);
     } catch (err) {
-      setHiddenFields(hiddenFields); // revert
+      setHiddenFields(previous); // revert
       setPrivacyError(err.message);
     } finally {
       setPrivacySaving(false);
@@ -227,7 +228,7 @@ export default function ProfilePage() {
       await deleteAccount(deletePassword);
       localStorage.removeItem("crew_token");
       localStorage.removeItem("crew_user");
-      navigate("/");
+      void navigate("/");
     } catch (err) {
       setDeleteError(err.message);
       setDeleting(false);
@@ -340,7 +341,7 @@ export default function ProfilePage() {
           </div>
 
         {settingsOpen && (
-          <div style={styles.modalOverlay} onClick={() => setSettingsOpen(false)}>
+          <div role="presentation" style={styles.modalOverlay} onClick={() => setSettingsOpen(false)}>
             <div className="profile-modal" style={styles.modal} role="dialog" aria-modal="true" aria-label="ตั้งค่าโปรไฟล์" onClick={(e) => e.stopPropagation()}>
               <style>{`.profile-modal section { margin-bottom: 0 !important; } .profile-modal section > h2 { display: none; } @keyframes profilePop { from { opacity: 0; transform: translateY(14px) scale(.97); } to { opacity: 1; transform: none; } } .profile-modal { animation: profilePop 160ms ease-out; }`}</style>
               <div style={styles.modalHead}>

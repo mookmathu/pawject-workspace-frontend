@@ -8,6 +8,7 @@ import seenIcon from "../../assets/images/seen.png";
 import closeEyeIcon from "../../assets/images/close-eye.png";
 import THAI_UNIVERSITIES from "../../data/thaiUniversities";
 import { registerUser, checkUsernameAvailable, getOAuthUrl } from "../../lib/api";
+import { isValidEmail } from "../../lib/validation";
 
 /**
  * RegisterPage
@@ -15,7 +16,6 @@ import { registerUser, checkUsernameAvailable, getOAuthUrl } from "../../lib/api
  * with the extra fields a sign-up form needs: name, confirm password,
  * and a terms-of-service checkbox.
  */
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const USERNAME_REGEX = /^[a-z0-9_]{3,20}$/;
 
 // Turn the part of an email before "@" into a valid username suggestion —
@@ -127,7 +127,7 @@ export default function RegisterPage() {
 
         if (!email.trim()) {
             next.email = "กรุณากรอกอีเมล";
-        } else if (!EMAIL_REGEX.test(email.trim())) {
+        } else if (!isValidEmail(email.trim())) {
             next.email = "รูปแบบอีเมลไม่ถูกต้อง";
         }
 
@@ -174,7 +174,7 @@ export default function RegisterPage() {
                 orgName,
             });
 
-            navigate("/verify-otp", { state: { email } });
+            void navigate("/verify-otp", { state: { email } });
         } catch (err) {
             setErrors((prev) => ({ ...prev, form: err.message }));
         } finally {

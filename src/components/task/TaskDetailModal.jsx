@@ -75,7 +75,7 @@ export default function TaskDetailModal({
   }
 
   return (
-    <div style={styles.overlay} onClick={onClose}>
+    <div role="presentation" style={styles.overlay} onClick={onClose}>
       <style>{`
         @media (max-width: 480px) {
           .task-detail-sheet { padding: 24px 18px 20px !important; }
@@ -83,7 +83,7 @@ export default function TaskDetailModal({
           .task-detail-proplabel { width: auto !important; }
         }
       `}</style>
-      <div className="task-detail-sheet" style={styles.sheet} onClick={(e) => e.stopPropagation()}>
+      <div role="presentation" className="task-detail-sheet" style={styles.sheet} onClick={(e) => e.stopPropagation()}>
         <button type="button" onClick={onClose} style={styles.closeBtn} title="ปิด">
           ×
         </button>

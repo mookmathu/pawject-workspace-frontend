@@ -7,6 +7,7 @@ import { GoogleIcon, GithubIcon, FacebookIcon } from "../../components/common/ic
 import seenIcon from "../../assets/images/seen.png";
 import closeEyeIcon from "../../assets/images/close-eye.png";
 import { loginUser, getOAuthUrl, getMe } from "../../lib/api";
+import { isValidEmail } from "../../lib/validation";
 
 /**
  * DoodleLoginPage
@@ -15,7 +16,6 @@ import { loginUser, getOAuthUrl, getMe } from "../../lib/api";
  * two separate elements, not boxed together.
  * Decoration: hand-drawn / doodle notebook style.
  */
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function DoodleLoginPage() {
   const navigate = useNavigate();
@@ -47,7 +47,7 @@ export default function DoodleLoginPage() {
         } catch {
           // best-effort only
         }
-        navigate("/welcome", { replace: true });
+        void navigate("/welcome", { replace: true });
       })
       .catch((err) => {
         if (!alive) return;
@@ -77,7 +77,7 @@ export default function DoodleLoginPage() {
 
     if (!email.trim()) {
       next.email = "กรุณากรอกอีเมล";
-    } else if (!EMAIL_REGEX.test(email.trim())) {
+    } else if (!isValidEmail(email.trim())) {
       next.email = "รูปแบบอีเมลไม่ถูกต้อง";
     }
 
@@ -102,11 +102,11 @@ export default function DoodleLoginPage() {
       localStorage.setItem("crew_token", token);
       localStorage.setItem("crew_user", JSON.stringify(user));
 
-      navigate("/welcome");
+      void navigate("/welcome");
     } catch (err) {
       if (err.code === "EMAIL_NOT_VERIFIED") {
         // The backend already sent a fresh OTP — just take them to enter it.
-        navigate("/verify-otp", { state: { email: err.email || email } });
+        void navigate("/verify-otp", { state: { email: err.email || email } });
         return;
       }
       setErrors((prev) => ({ ...prev, form: err.message }));

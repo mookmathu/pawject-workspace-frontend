@@ -5,6 +5,7 @@ import UserAvatar from "../../components/common/UserAvatar";
 import { useWorkspaces } from "../../lib/WorkspacesContext";
 import { setTaskJump } from "../../lib/navJump";
 import { MascotNote } from "../../components/common/Mascot";
+import { stripTags } from "../../lib/html";
 
 const TEAM_KEY = "crew_dashboard_team";
 const DAY = 24 * 60 * 60 * 1000;
@@ -23,7 +24,7 @@ function startOfDay(d) {
 }
 
 function stripHtml(html) {
-  return (html || "").replace(/<[^>]*>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/\s+/g, " ").trim();
+  return stripTags(html).replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/\s+/g, " ").trim();
 }
 
 function tint(hex, pct = 16) {
@@ -190,7 +191,7 @@ export default function DashboardPage() {
 
   function openTask(t) {
     setTaskJump({ workspaceId: activeWsId, taskId: t.id });
-    navigate("/task");
+    void navigate("/task");
   }
 
   function openReport() {
@@ -200,7 +201,7 @@ export default function DashboardPage() {
     } catch {
       /* fine */
     }
-    navigate("/task");
+    void navigate("/task");
   }
 
   function showOverdue() {

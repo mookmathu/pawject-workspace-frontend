@@ -385,7 +385,7 @@ export default function ChatWindow({ target, targetAvatarUrl, targetOnline, mess
       <form style={styles.composerWrap} onSubmit={handleSubmit}>
         {stickerOpen && (
           <>
-            <div style={styles.stickerCatcher} onClick={() => setStickerOpen(false)} />
+            <div role="presentation" style={styles.stickerCatcher} onClick={() => setStickerOpen(false)} />
             <div style={styles.stickerTray} role="dialog" aria-label="สติกเกอร์">
               <div style={styles.stickerTrayTitle}>สติกเกอร์</div>
               <div style={styles.stickerGrid}>
@@ -462,7 +462,7 @@ export default function ChatWindow({ target, targetAvatarUrl, targetOnline, mess
 
       {galleryOpen && (
         <div style={styles.galleryBackdrop} onClick={() => setGalleryOpen(false)} role="dialog" aria-modal="true" aria-label="รูปภาพทั้งหมด">
-          <div style={styles.galleryPanel} onClick={(e) => e.stopPropagation()}>
+          <div role="presentation" style={styles.galleryPanel} onClick={(e) => e.stopPropagation()}>
             <div style={styles.galleryHead}>
               <div>
                 <div style={styles.galleryTitle}>รูปภาพทั้งหมด</div>
@@ -500,7 +500,7 @@ export default function ChatWindow({ target, targetAvatarUrl, targetOnline, mess
 
       {viewing && (
         <div style={styles.viewerBackdrop} onClick={closeViewer} role="dialog" aria-modal="true" aria-label="ดูรูปภาพ">
-          <div style={styles.viewerBar} onClick={(e) => e.stopPropagation()}>
+          <div role="presentation" style={styles.viewerBar} onClick={(e) => e.stopPropagation()}>
             <div style={{ minWidth: 0 }}>
               <div style={styles.viewerTitle}>{viewing.sender || viewing.name || "รูปภาพ"}</div>
               <div style={styles.viewerSub}>

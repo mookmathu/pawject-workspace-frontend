@@ -143,7 +143,7 @@ export function CalendarPickerField({ value, onChange, disabled = false }) {
 
       {!disabled && open && (
         <>
-          <div style={styles.pickerBackdrop} onClick={() => setOpen(false)} />
+          <div role="presentation" style={styles.pickerBackdrop} onClick={() => setOpen(false)} />
           <div style={styles.pickerPopup}>
             <div style={styles.pickerHeader}>
               <button type="button" onClick={goPrevMonth} style={styles.pickerNavBtn}>
@@ -287,6 +287,7 @@ function WheelColumn({ values, value, onChange, label }) {
         <div
           key={v}
           role="option"
+          tabIndex={-1}
           aria-selected={i === value}
           onClick={() => ref.current.scrollTo({ top: i * ITEM_H, behavior: "smooth" })}
           style={{ ...styles.wheelItem, ...(i === value ? styles.wheelItemOn : {}) }}

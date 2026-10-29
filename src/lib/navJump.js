@@ -13,7 +13,9 @@ const CHAT_JUMP_KEY = "crew_chat_jump";
 
 export function setTaskJump({ workspaceId, taskId }) {
   try {
-    sessionStorage.setItem(TASK_JUMP_KEY, JSON.stringify({ workspaceId, taskId }));
+    // only plain ids are ever stored — anything else is dropped rather than trusted later
+    const jump = { workspaceId: String(workspaceId ?? ""), taskId: String(taskId ?? "") };
+    sessionStorage.setItem(TASK_JUMP_KEY, JSON.stringify(jump));
   } catch {
     // best-effort — worst case the page just opens without deep-linking
   }
@@ -34,7 +36,8 @@ export function consumeTaskJump() {
 
 export function setChatJump(target) {
   try {
-    sessionStorage.setItem(CHAT_JUMP_KEY, JSON.stringify(target));
+    const jump = { type: String(target?.type ?? ""), id: String(target?.id ?? ""), name: String(target?.name ?? "") };
+    sessionStorage.setItem(CHAT_JUMP_KEY, JSON.stringify(jump));
   } catch {
     // best-effort
   }

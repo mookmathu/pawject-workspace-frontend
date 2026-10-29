@@ -49,7 +49,7 @@ export default function MoodPopup({ onClose, onSaved }) {
   }, [onClose]);
 
   return (
-    <div style={backdrop} onClick={later}>
+    <div role="presentation" style={backdrop} onClick={later}>
       <style>{MOOD_CSS}</style>
       <style>{CSS}</style>
       <div className="mood-pop" role="dialog" aria-modal="true" aria-label="วันนี้รู้สึกยังไง" onClick={(e) => e.stopPropagation()}>

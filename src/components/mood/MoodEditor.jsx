@@ -165,7 +165,7 @@ export default function MoodEditor({ day, entry, onSaved, onDeleted, compact = f
 
   function pick(key) {
     setMood(key);
-    if (!open) persist(key); // 1-click save when no extras are open
+    if (!open) void persist(key); // 1-click save when no extras are open
   }
 
   function pickFile(e) {

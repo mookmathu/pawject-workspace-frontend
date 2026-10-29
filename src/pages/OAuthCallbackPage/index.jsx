@@ -24,7 +24,7 @@ export default function OAuthCallbackPage() {
     getMe()
       .then(({ user }) => {
         localStorage.setItem("crew_user", JSON.stringify(user));
-        navigate(needsProfile ? "/complete-profile" : "/welcome", { replace: true });
+        void navigate(needsProfile ? "/complete-profile" : "/welcome", { replace: true });
       })
       .catch((err) => {
         setError(err.message);

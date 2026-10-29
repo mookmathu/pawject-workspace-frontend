@@ -29,7 +29,7 @@ export default function VerifyOtpPage() {
     // register instead of showing a broken form.
     useEffect(() => {
         if (!email) {
-            navigate("/register", { replace: true });
+            void navigate("/register", { replace: true });
         }
     }, [email, navigate]);
 
@@ -101,7 +101,7 @@ export default function VerifyOtpPage() {
             localStorage.setItem("crew_user", JSON.stringify(user));
 
             // A first-time social sign-in still has to pick a username etc.
-            navigate(user.username ? "/welcome" : "/complete-profile", { replace: true });
+            void navigate(user.username ? "/welcome" : "/complete-profile", { replace: true });
         } catch (err) {
             setError(err.message);
         } finally {

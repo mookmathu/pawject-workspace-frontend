@@ -16,10 +16,13 @@ const MAX_TOASTS = 3;
 
 function senderOf(title = "") {
   // "ข้อความใหม่จาก Pim"  |  "Pim ส่งข้อความในกลุ่ม โปรเจกต์จบ"
-  const dm = title.match(/^ข้อความใหม่จาก\s+(.+)$/);
-  if (dm) return dm[1];
-  const grp = title.match(/^(.+?)\s+ส่งข้อความในกลุ่ม/);
-  return grp ? grp[1] : title;
+  const DM_PREFIX = "ข้อความใหม่จาก";
+  if (title.startsWith(DM_PREFIX)) {
+    const name = title.slice(DM_PREFIX.length).trim();
+    if (name) return name;
+  }
+  const at = title.indexOf(" ส่งข้อความในกลุ่ม");
+  return at > 0 ? title.slice(0, at).trim() : title;
 }
 
 const CSS = `
@@ -111,7 +114,7 @@ export default function ChatToast() {
     } else {
       return;
     }
-    navigate("/chat");
+    void navigate("/chat");
   }
 
   if (toasts.length === 0) return null;

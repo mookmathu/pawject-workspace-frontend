@@ -19,8 +19,20 @@ export function getOAuthUrl(provider) {
   return `${API_BASE_URL}/auth/${provider}`;
 }
 
+// Every request path is one of our own endpoints ("/tasks/…"). Anything that
+// could make the URL point somewhere else (another host, a parent directory)
+// is refused before fetch is called.
+function safePath(path) {
+  const p = String(path);
+  const pathname = p.split("?")[0];
+  if (!pathname.startsWith("/") || pathname.startsWith("//") || pathname.includes("..") || pathname.includes("\\")) {
+    throw new Error("Invalid request path");
+  }
+  return p;
+}
+
 async function apiRequest(path, options = {}) {
-  const res = await fetch(`${API_BASE_URL}${path}`, {
+  const res = await fetch(`${API_BASE_URL}${safePath(path)}`, {
     headers: { "Content-Type": "application/json" },
     ...options,
   });

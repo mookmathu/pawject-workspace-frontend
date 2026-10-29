@@ -257,7 +257,7 @@ export default function MoodCalendar() {
       </div>
 
       {selected && (
-        <div style={s.backdrop} onClick={() => setSelected(null)}>
+        <div role="presentation" style={s.backdrop} onClick={() => setSelected(null)}>
           <div style={s.modal} role="dialog" aria-modal="true" aria-label={longDay(selected)} onClick={(e) => e.stopPropagation()}>
             <h3 style={{ ...s.modalTitle, display: "flex", alignItems: "center", gap: 10 }}>
               {selMood && <MoodIcon mood={selMood.key} size={34} />}

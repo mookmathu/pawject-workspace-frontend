@@ -27,7 +27,7 @@ export function WorkspacesProvider({ children }) {
       // Same behavior the individual pages used to have: an expired/invalid
       // session bounces back to the login page instead of showing an error.
       if (err.status === 401) {
-        navigate("/");
+        void navigate("/");
         return [];
       }
       setError(err.message);

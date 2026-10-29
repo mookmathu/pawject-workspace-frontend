@@ -68,7 +68,7 @@ export default function TaskComposer({ onSubmit, categories = [], members = [], 
 
       {open &&
         createPortal(
-          <div className="tc-backdrop" style={styles.backdrop} onClick={reset}>
+          <div role="presentation" className="tc-backdrop" style={styles.backdrop} onClick={reset}>
             <style>{CSS}</style>
             <aside className="tc-panel" style={styles.panel} role="dialog" aria-modal="true" aria-label="เพิ่มงานใหม่" onClick={(e) => e.stopPropagation()}>
               <div style={styles.head}>

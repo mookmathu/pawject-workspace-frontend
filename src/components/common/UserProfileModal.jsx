@@ -36,7 +36,7 @@ export default function UserProfileModal({ userId, onClose }) {
     setActivity(null);
     setActivityYear(null);
     setActivityError("");
-    (async () => {
+    void (async () => {
       try {
         const { user } = await getUserProfile(userId);
         if (!cancelled) setUser(user);
@@ -84,9 +84,9 @@ export default function UserProfileModal({ userId, onClose }) {
   const initial = (user?.name || "?").trim().charAt(0).toUpperCase() || "?";
 
   return (
-    <div style={styles.overlay} onClick={onClose}>
+    <div role="presentation" style={styles.overlay} onClick={onClose}>
       <style>{CSS}</style>
-      <div className="upm-sheet" style={styles.sheet} onClick={(e) => e.stopPropagation()}>
+      <div role="presentation" className="upm-sheet" style={styles.sheet} onClick={(e) => e.stopPropagation()}>
         <button type="button" className="upm-x" style={styles.closeBtn} onClick={onClose} title="ปิด" aria-label="ปิด">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" aria-hidden="true">
             <path d="M5 5l14 14M19 5L5 19" />

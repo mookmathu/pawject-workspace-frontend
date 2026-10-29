@@ -22,6 +22,7 @@ import BoardNotes from "./BoardNotes";
 import { categoryColor } from "./categoryColor";
 import { consumeTaskJump } from "../../lib/navJump";
 import { MascotNote } from "../common/Mascot";
+import { focusOnMount } from "../../lib/focus";
 
 const THAI_MONTHS = [
   "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
@@ -72,9 +73,9 @@ function getContrastText(hex) {
   if (!hex) return "var(--ink)";
   const clean = hex.replace("#", "");
   const full = clean.length === 3 ? clean.split("").map((c) => c + c).join("") : clean;
-  const r = parseInt(full.substring(0, 2), 16);
-  const g = parseInt(full.substring(2, 4), 16);
-  const b = parseInt(full.substring(4, 6), 16);
+  const r = Number.parseInt(full.substring(0, 2), 16);
+  const g = Number.parseInt(full.substring(2, 4), 16);
+  const b = Number.parseInt(full.substring(4, 6), 16);
   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
   return luminance > 0.6 ? "#353B46" : "#FFFDF8";
 }
@@ -314,7 +315,7 @@ export default function TaskBoard() {
       setError("");
     } catch (err) {
       if (err.status === 401) {
-        navigate("/");
+        void navigate("/");
         return;
       }
       setError(err.message);
@@ -339,7 +340,7 @@ export default function TaskBoard() {
     } else {
       setLoading(true);
     }
-    loadBoard(workspaceId);
+    void loadBoard(workspaceId);
   }
 
   useEffect(() => {
@@ -354,7 +355,7 @@ export default function TaskBoard() {
     if (jump?.workspaceId) {
       setActiveWorkspaceId(jump.workspaceId);
       storeActiveWorkspaceId(jump.workspaceId);
-      loadBoard(jump.workspaceId).then(() => {
+      void loadBoard(jump.workspaceId).then(() => {
         if (jump.taskId) setExpandedTaskId(jump.taskId);
       });
       return;
@@ -367,9 +368,9 @@ export default function TaskBoard() {
     const storedStillValid = stored && workspaces.some((w) => w.id === stored);
     if (storedStillValid) {
       setActiveWorkspaceId(stored);
-      loadBoard(stored);
+      void loadBoard(stored);
     } else {
-      loadBoard();
+      void loadBoard();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workspacesLoading]);
@@ -378,7 +379,7 @@ export default function TaskBoard() {
     if (!board) return;
     try {
       await createTask(board.id, { ...draft, statusId });
-      loadBoard();
+      void loadBoard();
     } catch (err) {
       setError(err.message);
     }
@@ -404,10 +405,10 @@ export default function TaskBoard() {
 
     try {
       await updateTask(taskId, patch);
-      if (isRelational) loadBoard();
+      if (isRelational) void loadBoard();
     } catch (err) {
       setError(err.message);
-      loadBoard(); // resync — the optimistic patch above may now be wrong
+      void loadBoard(); // resync — the optimistic patch above may now be wrong
     }
   }
 
@@ -415,7 +416,7 @@ export default function TaskBoard() {
     try {
       await deleteTask(taskId);
       setExpandedTaskId(null);
-      loadBoard();
+      void loadBoard();
     } catch (err) {
       setError(err.message);
     }
@@ -428,7 +429,7 @@ export default function TaskBoard() {
       await updateTask(taskId, { archivedAt });
     } catch (err) {
       setError(err.message);
-      loadBoard();
+      void loadBoard();
     }
   }
 
@@ -438,7 +439,7 @@ export default function TaskBoard() {
       await updateTask(taskId, { archivedAt: null });
     } catch (err) {
       setError(err.message);
-      loadBoard();
+      void loadBoard();
     }
   }
 
@@ -448,7 +449,7 @@ export default function TaskBoard() {
     try {
       await addSubtask(taskId, title);
       setNewSubtaskDrafts((prev) => ({ ...prev, [taskId]: "" }));
-      loadBoard();
+      void loadBoard();
     } catch (err) {
       setError(err.message);
     }
@@ -472,14 +473,14 @@ export default function TaskBoard() {
       await updateSubtask(subtaskId, { done });
     } catch (err) {
       setError(err.message);
-      loadBoard();
+      void loadBoard();
     }
   }
 
   async function handleDeleteSubtask(subtaskId) {
     try {
       await deleteSubtask(subtaskId);
-      loadBoard();
+      void loadBoard();
     } catch (err) {
       setError(err.message);
     }
@@ -500,7 +501,7 @@ export default function TaskBoard() {
 
     try {
       await updateColumn(columnId, { name });
-      loadBoard();
+      void loadBoard();
     } catch (err) {
       setError(err.message);
     }
@@ -511,7 +512,7 @@ export default function TaskBoard() {
     setMenuColumnId(null);
     try {
       await deleteColumn(columnId);
-      loadBoard();
+      void loadBoard();
     } catch (err) {
       setError(err.message);
     }
@@ -525,7 +526,7 @@ export default function TaskBoard() {
       await createColumn(board.id, name);
       setNewColumnName("");
       setAddingColumn(false);
-      loadBoard();
+      void loadBoard();
     } catch (err) {
       setError(err.message);
     }
@@ -535,7 +536,7 @@ export default function TaskBoard() {
   async function handleSetColumnColor(columnId, color) {
     try {
       await updateColumn(columnId, { color });
-      loadBoard();
+      void loadBoard();
     } catch (err) {
       setError(err.message);
     }
@@ -544,7 +545,7 @@ export default function TaskBoard() {
   async function handleToggleDoneColumn(columnId, isDoneColumn) {
     try {
       await updateColumn(columnId, { isDoneColumn });
-      loadBoard();
+      void loadBoard();
     } catch (err) {
       setError(err.message);
     }
@@ -558,7 +559,7 @@ export default function TaskBoard() {
     try {
       await createCategory(board.id, { name, color });
       setNewCategoryName("");
-      loadBoard();
+      void loadBoard();
     } catch (err) {
       setError(err.message);
     }
@@ -567,7 +568,7 @@ export default function TaskBoard() {
   async function handleDeleteCategory(categoryId) {
     try {
       await deleteCategory(categoryId);
-      loadBoard();
+      void loadBoard();
     } catch (err) {
       setError(err.message);
     }
@@ -605,7 +606,7 @@ export default function TaskBoard() {
     if (!task || task.statusId === columnId) return; // no-op if dropped back in the same column
     if (!canEditTask(task)) return; // server would 403 this anyway — see canEditTask's comment
 
-    handleUpdateTask(taskId, { statusId: columnId });
+    void handleUpdateTask(taskId, { statusId: columnId });
   }
 
   // While a card is being dragged, scroll the board sideways when the
@@ -1081,7 +1082,7 @@ export default function TaskBoard() {
           {addingColumn ? (
             <div style={styles.newColumnInline}>
               <input
-                autoFocus
+                ref={focusOnMount}
                 placeholder="ชื่อสถานะใหม่"
                 value={newColumnName}
                 onChange={(e) => setNewColumnName(e.target.value)}
@@ -1176,6 +1177,7 @@ export default function TaskBoard() {
       {/* Close any open popover / add-column form when clicking elsewhere */}
       {(menuColumnId || addingColumn || workspaceMenuOpen || categoryMenuOpen) && (
         <div
+          role="presentation"
           style={styles.clickCatcher}
           onClick={() => {
             setMenuColumnId(null);
@@ -1252,7 +1254,7 @@ export default function TaskBoard() {
                 <div style={styles.columnLabelWrap}>
                   {isEditing ? (
                     <input
-                      autoFocus
+                      ref={focusOnMount}
                       value={columnNameDraft}
                       onChange={(e) => setColumnNameDraft(e.target.value)}
                       onBlur={commitColumnRename}
@@ -1261,8 +1263,16 @@ export default function TaskBoard() {
                     />
                   ) : (
                     <span
+                      role="button"
+                      tabIndex={0}
                       style={{ ...styles.columnLabel, background: colColor.bg, color: colColor.text }}
                       onClick={() => setMenuColumnId(isMenuOpen ? null : col.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setMenuColumnId(isMenuOpen ? null : col.id);
+                        }
+                      }}
                     >
                       {col.name}
                       {col.isDoneColumn && <span title="สถานะเสร็จสิ้น"> ✓</span>}

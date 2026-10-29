@@ -31,6 +31,7 @@ import { setTaskJump, setChatJump } from "../../lib/navJump";
 import Mascot, { MascotNote } from "../../components/common/Mascot";
 import { CrownIcon, PawPinIcon, CameraIcon, ChatBubbleIcon } from "../../components/common/DoodleIcons";
 import DachFrame from "../../components/common/DachFrame";
+import { focusOnMount } from "../../lib/focus";
 
 function formatTaskDueDate(iso) {
   if (!iso) return null;
@@ -189,7 +190,7 @@ function MyFriendId() {
         <>
           <div style={styles.myIdRow}>
             <input
-              autoFocus
+              ref={focusOnMount}
               value={draft}
               onChange={(e) => setDraft(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "").slice(0, 20))}
               onKeyDown={(e) => e.key === "Enter" && save()}
@@ -364,7 +365,6 @@ export default function HomePage() {
   const myUserId = user?.id;
 
   const groupFormRef = useRef(null);
-  const newGroupInputRef = useRef(null);
 
   // Only friends are fetched here now — the workspace list is shared via
   // WorkspacesContext (fetched once by AppLayout) instead of this page
@@ -376,7 +376,7 @@ export default function HomePage() {
       setError("");
     } catch (err) {
       if (err.status === 401) {
-        navigate("/");
+        void navigate("/");
         return;
       }
       setError(err.message);
@@ -386,7 +386,7 @@ export default function HomePage() {
   }
 
   useEffect(() => {
-    loadFriends();
+    void loadFriends();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -426,7 +426,7 @@ export default function HomePage() {
         // Different university/organization — needs the other person to accept.
         setNotice(`ส่งคำขอเป็นเพื่อนถึง ${result.request.name} แล้ว รอการยืนยัน`);
       } else {
-        loadFriends();
+        void loadFriends();
         setNotice(`เพิ่ม ${result?.friend?.name || "เพื่อน"} เป็นเพื่อนแล้ว`);
       }
       return true;
@@ -439,7 +439,7 @@ export default function HomePage() {
   async function handleRemoveFriend(userId) {
     try {
       await removeFriend(userId);
-      loadFriends();
+      void loadFriends();
     } catch (err) {
       setError(err.message);
     }
@@ -512,7 +512,7 @@ export default function HomePage() {
   }
 
   function handleCopyJoinCode(workspaceId, code) {
-    navigator.clipboard?.writeText(code).then(() => {
+    void navigator.clipboard?.writeText(code).then(() => {
       setCopiedCodeId(workspaceId);
       setTimeout(() => setCopiedCodeId((prev) => (prev === workspaceId ? null : prev)), 1500);
     });
@@ -631,7 +631,7 @@ export default function HomePage() {
                         style={styles.dashboardTaskRow}
                         onClick={() => {
                           setTaskJump({ workspaceId: t.workspaceId, taskId: t.id });
-                          navigate("/task");
+                          void navigate("/task");
                         }}
                       >
                         <span style={{ ...styles.urgencyDot, background: urgency ? "#E0473E" : "var(--ink-faint)" }} />
@@ -678,7 +678,7 @@ export default function HomePage() {
                       style={styles.dashboardTaskRow}
                       onClick={() => {
                         setChatJump({ type: entry.type, id: entry.id, name: entry.name });
-                        navigate("/chat");
+                        void navigate("/chat");
                       }}
                     >
                       <UserAvatar avatarUrl={entry.type === "dm" ? entry.avatarUrl : null} name={entry.name} style={styles.chatInitial} />
@@ -748,7 +748,7 @@ export default function HomePage() {
           <div className="card-clean" style={{ ...styles.card, marginBottom: 16 }}>
             <div style={styles.newGroupRow}>
               <input
-                autoFocus
+                ref={focusOnMount}
                 type="text"
                 placeholder="กรอกรหัสเข้ากลุ่ม 6 หลัก"
                 value={joinCodeInput}
@@ -780,8 +780,7 @@ export default function HomePage() {
           <div ref={groupFormRef} className="card-clean" style={{ ...styles.card, marginBottom: 16 }}>
             <div style={styles.newGroupRow}>
               <input
-                ref={newGroupInputRef}
-                autoFocus
+                ref={focusOnMount}
                 type="text"
                 placeholder="ชื่อกลุ่ม เช่น โปรเจกต์จบ"
                 value={newGroupName}
@@ -898,8 +897,8 @@ export default function HomePage() {
           const isOwner = ws.ownerId === myUserId;
           const otherMembers = ws.members.filter((m) => m.user.id !== ws.ownerId);
           return (
-            <div style={styles.modalOverlay} onClick={closeGroupModal}>
-              <div style={styles.modalSheet} onClick={(e) => e.stopPropagation()}>
+            <div role="presentation" style={styles.modalOverlay} onClick={closeGroupModal}>
+              <div role="presentation" style={styles.modalSheet} onClick={(e) => e.stopPropagation()}>
                 <button
                   type="button"
                   onClick={closeGroupModal}
