@@ -1,0 +1,33 @@
+name: SonarCloud
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  sonar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Sonar needs full history for accurate blame/new-code
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      # CRA's jest: writes coverage/lcov.info
+      - name: Run tests with coverage
+        run: npm test -- --watchAll=false --coverage --coverageReporters=lcov --collectCoverageFrom="src/**/*.{js,jsx}" --collectCoverageFrom="!src/index.js"
+        env:
+          CI: "true"
+
+      - name: SonarCloud scan
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
