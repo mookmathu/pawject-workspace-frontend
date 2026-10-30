@@ -23,7 +23,6 @@ const styles = {
   date: { margin: 0, fontSize: 14, color: "var(--ink-soft)" },
   trail: { position: "absolute", inset: 0, pointerEvents: "none", overflow: "visible" },
   pic: { width: "100%", height: "100%", objectFit: "contain" },
-  picWrap: { position: "relative", display: "flex", width: "100%", height: "100%" },
   avatarFallback: {
     display: "flex",
     alignItems: "center",

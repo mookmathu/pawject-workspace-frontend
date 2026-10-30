@@ -4,106 +4,30 @@ import GlobalStyles from "../../components/common/GlobalStyles";
 import Mascot from "../../components/common/Mascot";
 import { getMyTasks, getUnreadCounts, resolveAvatarUrl } from "../../lib/api";
 import styles from "./styles";
+import iconHome from "../../assets/welcome/icon-home.png";
+import iconDashboard from "../../assets/welcome/icon-dashboard.png";
+import iconTask from "../../assets/welcome/icon-task.png";
+import iconChat from "../../assets/welcome/icon-chat.png";
+import iconCalendar from "../../assets/welcome/icon-calendar.png";
 
 /**
  * Welcome launcher: the pup sits in the middle and the five destinations
  * float around it as thought bubbles ("what is the pup thinking about?").
  * Names only show on hover/focus; the profile is just the user's avatar.
- * Flat colours only. Layout maths lives in a 100 x H "unit" space so the
+ * Icons are hand-drawn PNGs (src/assets/welcome). Layout maths lives in a 100 x H "unit" space so the
  * bubbles, the dotted thought trail and the SVG overlay always line up.
  */
 
-const INK = "#353B46";
-
-/* ---- doodle icons (flat fill + ink line) ---- */
-const svgProps = { viewBox: "0 0 64 64", fill: "none", stroke: INK, strokeWidth: 3, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true };
-
-function BoneShape({ x = 0, y = 0, s = 1, fill = "#FFFDF8" }) {
-  return (
-    <g transform={`translate(${x} ${y}) scale(${s})`}>
-      <path d="M10 6 a5 5 0 1 0 -1 9 a5 5 0 1 0 8 4 H37 a5 5 0 1 0 8 -4 a5 5 0 1 0 -1 -9 a5 5 0 1 0 -7 -3 H17 a5 5 0 1 0 -7 3 Z" fill={fill} />
-    </g>
-  );
-}
-
-function IconDashboard() {
-  return (
-    <svg {...svgProps}>
-      <path d="M8 54 H56" />
-      <rect x="11" y="36" width="12" height="18" rx="3" fill="#FFFDF8" />
-      <rect x="26" y="18" width="12" height="36" rx="3" fill="#F6D98F" />
-      <rect x="41" y="28" width="12" height="26" rx="3" fill="#FFFDF8" />
-      <path d="M44 12 l2.2 4.6 5 .7 -3.6 3.5 .9 5 -4.5 -2.4 -4.5 2.4 .9 -5 -3.6 -3.5 5 -.7 Z" fill="#fff" strokeWidth="2.2" transform="translate(-6 -4) scale(.95)" />
-    </svg>
-  );
-}
-
-function IconChat() {
-  return (
-    <svg {...svgProps}>
-      <path d="M12 12 H52 a6 6 0 0 1 6 6 V38 a6 6 0 0 1 -6 6 H34 L22 54 V44 H12 a6 6 0 0 1 -6 -6 V18 a6 6 0 0 1 6 -6 Z" fill="#FFFDF8" />
-      <BoneShape x={14} y={19} s={0.72} fill="#F6D98F" />
-    </svg>
-  );
-}
-
-function IconCalendar() {
-  return (
-    <svg {...svgProps}>
-      <rect x="8" y="12" width="48" height="44" rx="7" fill="#FFFDF8" />
-      <path d="M8 26 H56" />
-      <path d="M20 7 V17 M44 7 V17" />
-      <g fill={INK} stroke="none" transform="translate(32 41)">
-        <ellipse cx="0" cy="4" rx="6.5" ry="5.4" />
-        <ellipse cx="-8.5" cy="-3" rx="2.6" ry="3.2" />
-        <ellipse cx="-3" cy="-7.5" rx="2.6" ry="3.2" />
-        <ellipse cx="3" cy="-7.5" rx="2.6" ry="3.2" />
-        <ellipse cx="8.5" cy="-3" rx="2.6" ry="3.2" />
-      </g>
-    </svg>
-  );
-}
-
-function IconHome() {
-  return (
-    <svg {...svgProps}>
-      <path d="M13 31 V55 H51 V31" fill="#FFFDF8" />
-      <path d="M6 33 L32 7 L58 33 Z" fill="#F6D98F" />
-      <path d="M25 55 V43 a7 7 0 0 1 14 0 V55" fill="#A9C8F0" />
-      <g fill={INK} stroke="none" transform="translate(32 24) scale(.55)">
-        <ellipse cx="0" cy="4" rx="6.5" ry="5.4" />
-        <ellipse cx="-8.5" cy="-3" rx="2.6" ry="3.2" />
-        <ellipse cx="-3" cy="-7.5" rx="2.6" ry="3.2" />
-        <ellipse cx="3" cy="-7.5" rx="2.6" ry="3.2" />
-        <ellipse cx="8.5" cy="-3" rx="2.6" ry="3.2" />
-      </g>
-    </svg>
-  );
-}
-
-function IconTask() {
-  return (
-    <span style={styles.picWrap}>
-      <svg {...svgProps} style={{ width: "100%", height: "100%" }}>
-        <path d="M9 32 L15 52 Q16.5 56 21 56 H43 Q47.5 56 49 52 L55 32" fill="#F6D98F" />
-        <BoneShape x={19} y={38} s={0.5} />
-        <ellipse cx="32" cy="32" rx="23" ry="8.5" fill="#E8B98A" />
-        <g fill={INK} stroke="none">
-          <circle cx="24" cy="31" r="1.8" />
-          <circle cx="33" cy="34" r="1.8" />
-          <circle cx="41" cy="30" r="1.8" />
-        </g>
-      </svg>
-    </span>
-  );
+function Doodle({ src }) {
+  return <img src={src} alt="" draggable={false} />;
 }
 
 const DESTINATIONS = [
-  { key: "home", title: "Home", path: "/home", tint: "#F6D98F", icon: <IconHome />, thought: "อยากกลับบ้าน" },
-  { key: "dashboard", title: "Dashboard", path: "/dashboard", tint: "#A9C8F0", icon: <IconDashboard />, thought: "อยากดูภาพรวม" },
-  { key: "task", title: "Task", path: "/task", tint: "#A8D8B9", icon: <IconTask />, thought: "อยากกินข้าว" },
-  { key: "chat", title: "Chat", path: "/chat", tint: "#F4B8B8", icon: <IconChat />, thought: "อยากคุยกับเพื่อน" },
-  { key: "calendar", title: "Calendar", path: "/calendar", tint: "#CDBDE8", icon: <IconCalendar />, thought: "อยากไปเที่ยว" },
+  { key: "home", title: "Home", path: "/home", tint: "#F6D98F", icon: <Doodle src={iconHome} />, thought: "อยากกลับบ้าน" },
+  { key: "dashboard", title: "Dashboard", path: "/dashboard", tint: "#A9C8F0", icon: <Doodle src={iconDashboard} />, thought: "อยากดูภาพรวม" },
+  { key: "task", title: "Task", path: "/task", tint: "#A8D8B9", icon: <Doodle src={iconTask} />, thought: "อยากกินข้าว" },
+  { key: "chat", title: "Chat", path: "/chat", tint: "#F4B8B8", icon: <Doodle src={iconChat} />, thought: "อยากคุยกับเพื่อน" },
+  { key: "calendar", title: "Calendar", path: "/calendar", tint: "#CDBDE8", icon: <Doodle src={iconCalendar} />, thought: "อยากไปเที่ยว" },
 ];
 
 /* positions in a 100 x H unit box: [cx, cy] of each bubble, origin = pup's head */
@@ -122,6 +46,7 @@ const CSS = `
 .wl-cloud{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
 .wl-ico{position:absolute;left:21%;right:21%;top:16%;bottom:4%;display:flex;align-items:center;justify-content:center}
 .wl-ico>svg,.wl-ico>img{width:100%;height:100%;object-fit:contain}
+.wl-ico>img{filter:drop-shadow(2px 0 0 #FFFDF8) drop-shadow(-2px 0 0 #FFFDF8) drop-shadow(0 2px 0 #FFFDF8) drop-shadow(0 -2px 0 #FFFDF8);user-select:none}
 .wl-label{position:absolute;left:50%;top:100%;margin-top:-4px;transform:translate(-50%,6px) scale(.9);white-space:nowrap;padding:3px 14px 4px;font-size:17px;font-weight:700;
   color:var(--ink);background:var(--bg-surface);border:2.5px solid var(--ink);border-radius:255px 15px 225px 15px / 15px 225px 15px 255px;box-shadow:3px 3px 0 0 var(--ink);
   opacity:0;pointer-events:none;transition:opacity .15s,transform .2s cubic-bezier(.3,1.6,.5,1);z-index:5}

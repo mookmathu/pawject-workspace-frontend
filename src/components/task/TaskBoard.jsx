@@ -23,6 +23,7 @@ import { categoryColor } from "./categoryColor";
 import { consumeTaskJump } from "../../lib/navJump";
 import { MascotNote } from "../common/Mascot";
 import { focusOnMount } from "../../lib/focus";
+import DoodleIcon from "../common/DoodleIcon";
 
 const THAI_MONTHS = [
   "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
@@ -738,7 +739,7 @@ export default function TaskBoard() {
       ? "My Board"
       : activeWorkspace.name
     : board?.name || "My Board";
-  const boardBadgeText = activeWorkspace && !activeWorkspace.isPersonal ? displayTitle.trim().charAt(0).toUpperCase() : "📋";
+  const boardBadgeText = activeWorkspace && !activeWorkspace.isPersonal ? displayTitle.trim().charAt(0).toUpperCase() : <DoodleIcon name="note" size={28} style={{ filter: "drop-shadow(1.5px 0 0 #FFFDF8) drop-shadow(-1.5px 0 0 #FFFDF8) drop-shadow(0 1.5px 0 #FFFDF8) drop-shadow(0 -1.5px 0 #FFFDF8)" }} />;
 
   function renderListView() {
     const rows = [...visibleTasks].sort((a, b) => {
@@ -1017,7 +1018,7 @@ export default function TaskBoard() {
               className="task-act-secondary"
               style={styles.secondaryBtn}
             >
-              🏷️ หมวดหมู่
+              <DoodleIcon name="tag" size={16} /> หมวดหมู่
             </button>
             {categoryMenuOpen && (
               <div className="task-cat-menu" style={styles.categoryMenu}>
@@ -1108,14 +1109,16 @@ export default function TaskBoard() {
 
       {/* Search + filters */}
       <div className="task-filter-bar" style={styles.filterBar}>
-        <input
-          type="text"
-          placeholder="🔍 ค้นหางาน..."
-          className="task-search"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          style={styles.searchInput}
-        />
+        <div className="task-search" style={{ position: "relative", display: "flex", flex: 1, minWidth: 180 }}>
+          <DoodleIcon name="search" size={18} style={{ position: "absolute", left: 13, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }} />
+          <input
+            type="text"
+            placeholder="ค้นหางาน..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ ...styles.searchInput, width: "100%", minWidth: 0, paddingLeft: 38 }}
+          />
+        </div>
         <div className="task-filter-chips">
         <select
           value={filterCategoryId}
@@ -1161,7 +1164,7 @@ export default function TaskBoard() {
             onClick={() => setOnlyMine((v) => !v)}
             style={{ ...styles.filterToggleBtn, ...(onlyMine ? styles.filterToggleBtnActive : {}) }}
           >
-            👤 งานของฉัน
+            <DoodleIcon name="person" size={16} /> งานของฉัน
           </button>
         )}
         <button

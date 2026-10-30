@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { updateBoardNote } from "../../lib/api";
 import { MascotNote } from "../common/Mascot";
 import { stripTags } from "../../lib/html";
+import DoodleIcon from "../common/DoodleIcon";
 
 function genId() {
   return `blk-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -257,7 +258,7 @@ export default function BoardNotes({ boardId, initialBlocks }) {
           onClick={() => setColorMenuId(colorMenuId === b.id ? null : b.id)}
           style={styles.iconBtn}
         >
-          🎨
+          <DoodleIcon name="palette" size={16} style={{ verticalAlign: "middle" }} />
         </button>
         <button type="button" title="ลบ" onClick={() => deleteBlock(b.id)} style={styles.iconBtn}>
           ×
@@ -378,7 +379,7 @@ export default function BoardNotes({ boardId, initialBlocks }) {
 
       <div className="note-head" style={styles.headerRow}>
         <div style={styles.headLeft}>
-          <span style={styles.headIcon}>📝</span>
+          <span style={styles.headIcon}><DoodleIcon name="note" size={24} /></span>
           <div>
             <div style={styles.titleLine}>
               <h3 style={styles.title}>Note &amp; Quick Scratchpad</h3>
@@ -395,7 +396,7 @@ export default function BoardNotes({ boardId, initialBlocks }) {
                   No tabIndex here — the span itself isn't interactive, and its
                   <button> children are already focusable/tabbable on their own. */}
               <span className="note-tools-zone">
-                <span>🎨 Tools</span>
+                <span><DoodleIcon name="palette" size={16} /> Tools</span>
                 <span className="note-tools-inline">
                   <button type="button" className="note-tool-btn" onMouseDown={keepSelection} onClick={() => exec("bold")} title="ตัวหนา">
                     <b>B</b>
@@ -460,13 +461,16 @@ export default function BoardNotes({ boardId, initialBlocks }) {
                   </button>
                 ))}
               </div>
-              <input
-                type="text"
-                placeholder="🔍 ค้นหาโน้ต..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                style={styles.search}
-              />
+              <div style={{ position: "relative", display: "flex", flex: "0 1 220px", minWidth: 150 }}>
+                <DoodleIcon name="search" size={16} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }} />
+                <input
+                  type="text"
+                  placeholder="ค้นหาโน้ต..."
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  style={{ ...styles.search, width: "100%", minWidth: 0, paddingLeft: 32 }}
+                />
+              </div>
               {todos.length > 0 && (
                 <div style={styles.progressWrap} title={`To-do เสร็จ ${doneCount}/${todos.length}`}>
                   <div style={styles.progressTrack}>

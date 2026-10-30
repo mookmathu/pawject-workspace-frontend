@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { CalendarPickerField, dateToFields, fieldsToDate } from "../calendar/DateTimeFields";
 import { addComment, deleteComment } from "../../lib/api";
+import DoodleIcon from "../common/DoodleIcon";
 
 const PRIORITY_OPTIONS = ["ต่ำ", "ปานกลาง", "สูง"];
 
@@ -120,7 +121,7 @@ export default function TaskDetailModal({
         </div>
 
         <div className="task-detail-proprow" style={styles.propRow}>
-          <span className="task-detail-proplabel" style={styles.propLabel}>👤 ผู้รับผิดชอบ</span>
+          <span className="task-detail-proplabel" style={styles.propLabel}><DoodleIcon name="person" size={16} /> ผู้รับผิดชอบ</span>
           <select
             value={task.assigneeId || ""}
             onChange={(e) => commit("assigneeId", e.target.value)}

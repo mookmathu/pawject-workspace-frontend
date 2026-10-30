@@ -57,6 +57,7 @@ export default function GlobalStyles() {
       :root[data-theme="dark"] img.eye-icon,
       :root[data-theme="dark"] img[alt="seen"],
       :root[data-theme="dark"] img[alt="Close eye"] { filter: invert(1); }
+      :root[data-theme="dark"] img.doodle-ico { filter: invert(1) hue-rotate(180deg); }
       :root[data-theme="dark"] .social-btn { background: #FFFDF8 !important; }
       :root[data-theme="dark"] .social-btn svg { fill: #24292F; }
       :root[data-theme="dark"] .doodle-input { color: var(--ink); }

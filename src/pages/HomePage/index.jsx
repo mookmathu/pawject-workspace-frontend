@@ -29,7 +29,7 @@ import MoodPopup from "../../components/mood/MoodPopup";
 import MoodCard from "../../components/mood/MoodCard";
 import { setTaskJump, setChatJump } from "../../lib/navJump";
 import Mascot, { MascotNote } from "../../components/common/Mascot";
-import { CrownIcon, PawPinIcon, CameraIcon, ChatBubbleIcon } from "../../components/common/DoodleIcons";
+import DoodleIcon from "../../components/common/DoodleIcon";
 import DachFrame from "../../components/common/DachFrame";
 import { focusOnMount } from "../../lib/focus";
 
@@ -305,7 +305,7 @@ function GroupImage({ workspace, isOwner, onUpload, size = 48 }) {
             title="เปลี่ยนรูปกลุ่ม"
             aria-label="เปลี่ยนรูปกลุ่ม"
           >
-            {uploading ? "…" : <CameraIcon size={13} style={{ verticalAlign: "middle" }} />}
+            {uploading ? "…" : <DoodleIcon name="camera" size={14} style={{ verticalAlign: "middle" }} />}
           </button>
           <input
             ref={fileInputRef}
@@ -610,7 +610,7 @@ export default function HomePage() {
         <div style={styles.dashboardGrid}>
           <div className="card-clean home-card" style={{ ...styles.dashboardCard, ...styles.attnTasks }}>
             <div style={styles.attnHead}>
-              <p style={styles.dashboardCardTitle}>📋 งานใกล้ครบกำหนด</p>
+              <p style={styles.dashboardCardTitle}><DoodleIcon name="clipboard" size={20} style={{ marginRight: 4 }} />งานใกล้ครบกำหนด</p>
               {myTasks.length > 0 && <span style={styles.countPill}>{myTasks.length}</span>}
             </div>
             {myTasksLoading ? (
@@ -659,7 +659,7 @@ export default function HomePage() {
 
           <div className="card-clean home-card" style={{ ...styles.dashboardCard, ...styles.attnChat }}>
             <div style={styles.attnHead}>
-              <p style={styles.dashboardCardTitle}>💬 ข้อความที่ยังไม่อ่าน</p>
+              <p style={styles.dashboardCardTitle}><DoodleIcon name="chat" size={20} style={{ marginRight: 4 }} />ข้อความที่ยังไม่อ่าน</p>
               {totalUnread > 0 && <span style={styles.countPill}>{totalUnread > 99 ? "99+" : totalUnread}</span>}
             </div>
             {unreadCountsLoading ? (
@@ -847,7 +847,7 @@ export default function HomePage() {
                   <span style={styles.wsTitleCol}>
                     <span style={{ ...styles.groupName, fontSize: 19, lineHeight: 1.2, wordBreak: "break-word" }}>{ws.name}</span>
                     <span style={{ ...(ws.ownerId === myUserId ? styles.roleHead : styles.roleMember), ...styles.wsRole }}>
-                      {ws.ownerId === myUserId ? (<><CrownIcon size={15} style={{ marginRight: 4 }} />Head</>) : "สมาชิก"}
+                      {ws.ownerId === myUserId ? (<><DoodleIcon name="crown" size={16} style={{ marginRight: 4 }} />Head</>) : "สมาชิก"}
                     </span>
                   </span>
                 </div>
@@ -871,8 +871,8 @@ export default function HomePage() {
                     const unread = unreadCounts[`workspace:${ws.id}`] || 0;
                     return (
                       <>
-                        <span style={{ ...styles.miniChip, ...styles.wsChip }}><PawPinIcon size={15} style={{ marginRight: 4 }} />งานของฉัน {mine}</span>
-                        {unread > 0 && <span style={{ ...styles.miniChip, ...styles.miniChipAlert }}><ChatBubbleIcon size={14} style={{ marginRight: 4, stroke: "#FFFDF8" }} />{unread > 99 ? "99+" : unread}</span>}
+                        <span style={{ ...styles.miniChip, ...styles.wsChip }}><DoodleIcon name="pencil" size={15} style={{ marginRight: 4 }} />งานของฉัน {mine}</span>
+                        {unread > 0 && <span style={{ ...styles.miniChip, ...styles.miniChipAlert }}><DoodleIcon name="chat" size={15} style={{ marginRight: 4, filter: "drop-shadow(1px 0 0 #FFFDF8) drop-shadow(-1px 0 0 #FFFDF8) drop-shadow(0 1px 0 #FFFDF8) drop-shadow(0 -1px 0 #FFFDF8)" }} />{unread > 99 ? "99+" : unread}</span>}
                       </>
                     );
                   })()}
