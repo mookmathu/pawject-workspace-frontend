@@ -11,10 +11,8 @@ import {
   setMyFriendId,
   removeFriend,
   createWorkspace,
-  addWorkspaceMember,
   removeWorkspaceMember,
   deleteWorkspace,
-  searchUsers,
   uploadWorkspaceImage,
   resolveAvatarUrl,
   joinWorkspaceByCode,
@@ -30,6 +28,7 @@ import MoodCard from "../../components/mood/MoodCard";
 import { setTaskJump, setChatJump } from "../../lib/navJump";
 import Mascot, { MascotNote } from "../../components/common/Mascot";
 import DoodleIcon from "../../components/common/DoodleIcon";
+import GroupModal from "../../components/home/GroupModal";
 import DachFrame from "../../components/common/DachFrame";
 import { focusOnMount } from "../../lib/focus";
 
@@ -60,61 +59,6 @@ function getStoredUser() {
 
 function initialOf(name) {
   return (name || "?").trim().charAt(0).toUpperCase() || "?";
-}
-
-// Small reusable "type a username, pick from search results" input.
-function UsernameTagInput({ placeholder, onPick, excludeIds = [], inputRef }) {
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState([]);
-
-  useEffect(() => {
-    if (!query.trim()) {
-      setResults([]);
-      return;
-    }
-    const timeout = setTimeout(async () => {
-      try {
-        const { users } = await searchUsers(query.trim());
-        setResults(users.filter((u) => !excludeIds.includes(u.id)));
-      } catch {
-        setResults([]);
-      }
-    }, 300);
-    return () => clearTimeout(timeout);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query]);
-
-  return (
-    <div style={styles.tagInputWrap}>
-      <input
-        ref={inputRef}
-        type="text"
-        placeholder={placeholder}
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        style={styles.tagInput}
-      />
-      {results.length > 0 && (
-        <ul style={styles.tagDropdown}>
-          {results.map((u) => (
-            <li key={u.id}>
-              <button
-                type="button"
-                onClick={() => {
-                  onPick(u);
-                  setQuery("");
-                  setResults([]);
-                }}
-                style={styles.tagOption}
-              >
-                <strong>@{u.username}</strong> {u.name}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
 }
 
 // "My friend ID" card — the ID other people type to add me. Created by the
@@ -452,15 +396,6 @@ export default function HomePage() {
       await createWorkspace(name);
       setNewGroupName("");
       setCreatingGroup(false);
-      refreshWorkspaces();
-    } catch (err) {
-      setError(err.message);
-    }
-  }
-
-  async function handleInviteToGroup(workspaceId, user) {
-    try {
-      await addWorkspaceMember(workspaceId, user.username);
       refreshWorkspaces();
     } catch (err) {
       setError(err.message);
@@ -895,170 +830,26 @@ export default function HomePage() {
           const ws = groupWorkspaces.find((w) => w.id === expandedGroupId);
           if (!ws) return null;
           const isOwner = ws.ownerId === myUserId;
-          const otherMembers = ws.members.filter((m) => m.user.id !== ws.ownerId);
           return (
-            <div role="presentation" style={styles.modalOverlay} onClick={closeGroupModal}>
-              <div role="presentation" style={styles.modalSheet} onClick={(e) => e.stopPropagation()}>
-                <button
-                  type="button"
-                  onClick={closeGroupModal}
-                  style={styles.modalCloseBtn}
-                  title="ปิด"
-                >
-                  ×
-                </button>
-
-                <div style={styles.groupCardHeader}>
-                  <GroupImage
-                    workspace={ws}
-                    isOwner={isOwner}
-                    onUpload={(file) => handleUploadGroupImage(ws.id, file)}
-                  />
-                  <span style={styles.groupCardHeaderInfo}>
-                    <span style={{ ...styles.groupName, margin: 0, fontSize: 19 }}>{ws.name}</span>
-                    <span style={styles.groupMemberCount}>{ws.members.length} สมาชิก</span>
-                  </span>
-                </div>
-
-                <div style={styles.groupCardBody}>
-                  <ul style={styles.memberList}>
-                    {ws.members.map((m) => (
-                      <li key={m.id} style={styles.memberRow}>
-                        <span
-                          role="button"
-                          tabIndex={0}
-                          style={{ ...styles.memberChip, cursor: "pointer" }}
-                          onClick={() => openUserProfile(m.user.id)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              openUserProfile(m.user.id);
-                            }
-                          }}
-                          title="ดูโปรไฟล์"
-                        >
-                          {m.user.avatarUrl ? (
-                            <img src={resolveAvatarUrl(m.user.avatarUrl)} alt={m.user.name} style={styles.memberAvatar} />
-                          ) : (
-                            <span style={styles.memberAvatarPlaceholder}>{initialOf(m.user.name)}</span>
-                          )}
-                          @{m.user.username}
-                          {m.role === "owner" && <span style={styles.ownerTag}>เจ้าของ</span>}
-                        </span>
-                        {m.role !== "owner" && isOwner && (
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveGroupMember(ws.id, m.user.id)}
-                            style={styles.removeBtn}
-                            title="ลบออกจากกลุ่ม"
-                          >
-                            ×
-                          </button>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-
-                  <UsernameTagInput
-                    placeholder="เชิญเพื่อนด้วย username..."
-                    onPick={(u) => handleInviteToGroup(ws.id, u)}
-                    excludeIds={ws.members.map((m) => m.user.id)}
-                  />
-
-                  {ws.joinCode && (
-                    <div style={styles.joinCodeBox}>
-                      <div>
-                        <p style={styles.joinCodeLabel}>รหัสเข้ากลุ่ม</p>
-                        <p style={styles.joinCodeValue}>{ws.joinCode}</p>
-                      </div>
-                      <div style={styles.joinCodeActions}>
-                        <button
-                          type="button"
-                          style={styles.joinCodeBtn}
-                          onClick={() => handleCopyJoinCode(ws.id, ws.joinCode)}
-                        >
-                          {copiedCodeId === ws.id ? "คัดลอกแล้ว" : "คัดลอก"}
-                        </button>
-                        {isOwner && (
-                          <button
-                            type="button"
-                            style={styles.joinCodeBtn}
-                            onClick={() => handleRegenerateJoinCode(ws.id)}
-                            title="สร้างรหัสใหม่ (รหัสเดิมจะใช้ไม่ได้อีก)"
-                          >
-                            สร้างรหัสใหม่
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {isOwner && otherMembers.length > 0 && (
-                    <div style={styles.transferBox}>
-                      <p style={styles.transferLabel}>โอนสิทธิ์ Head ให้สมาชิกคนอื่น</p>
-                      <div style={styles.transferRow}>
-                        <select
-                          value={transferTargets[ws.id] || ""}
-                          onChange={(e) => setTransferTargets((prev) => ({ ...prev, [ws.id]: e.target.value }))}
-                          style={styles.transferSelect}
-                        >
-                          <option value="">เลือกสมาชิก...</option>
-                          {otherMembers.map((m) => (
-                            <option key={m.user.id} value={m.user.id}>
-                              @{m.user.username}
-                            </option>
-                          ))}
-                        </select>
-                        <button
-                          type="button"
-                          style={styles.joinCodeBtn}
-                          disabled={!transferTargets[ws.id]}
-                          onClick={() => handleTransferOwnership(ws.id)}
-                        >
-                          โอนสิทธิ์
-                        </button>
-                      </div>
-                      <p style={styles.transferNote}>
-                        หลังโอนแล้ว คุณจะกลายเป็นสมาชิกทั่วไป และไม่สามารถโอนกลับเองได้ทันที
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Every group has a way out of it here — Head deletes
-                      the whole group, anyone else just leaves it. */}
-                  <div style={styles.dangerBox}>
-                    {confirmingDeleteId === ws.id ? (
-                      <>
-                        <p style={styles.dangerConfirmText}>
-                          {isOwner
-                            ? `ลบกลุ่ม "${ws.name}" ใช่ไหม? บอร์ดและงานทั้งหมดในกลุ่มจะถูกลบไปด้วย และกู้คืนไม่ได้`
-                            : `ออกจากกลุ่ม "${ws.name}" ใช่ไหม?`}
-                        </p>
-                        <div style={styles.transferRow}>
-                          <button
-                            type="button"
-                            style={styles.dangerConfirmBtn}
-                            disabled={deletingId === ws.id}
-                            onClick={() =>
-                              isOwner ? handleDeleteWorkspace(ws.id) : handleLeaveWorkspace(ws.id)
-                            }
-                          >
-                            {deletingId === ws.id ? "กำลังดำเนินการ..." : isOwner ? "ยืนยันลบกลุ่ม" : "ยืนยันออกจากกลุ่ม"}
-                          </button>
-                          <button type="button" style={styles.cancelBtn} onClick={() => setConfirmingDeleteId(null)}>
-                            ยกเลิก
-                          </button>
-                        </div>
-                      </>
-                    ) : (
-                      <button type="button" style={styles.dangerBtn} onClick={() => setConfirmingDeleteId(ws.id)}>
-                        {isOwner ? "ลบกลุ่มนี้" : "ออกจากกลุ่ม"}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
+            <GroupModal
+              ws={ws}
+              isOwner={isOwner}
+              imageSlot={<GroupImage workspace={ws} isOwner={isOwner} onUpload={(file) => handleUploadGroupImage(ws.id, file)} size={58} />}
+              onClose={closeGroupModal}
+              onOpenProfile={openUserProfile}
+              onRemoveMember={(userId) => handleRemoveGroupMember(ws.id, userId)}
+              copied={copiedCodeId === ws.id}
+              onCopyCode={() => handleCopyJoinCode(ws.id, ws.joinCode)}
+              onRegenerate={() => handleRegenerateJoinCode(ws.id)}
+              transferTarget={transferTargets[ws.id] || ""}
+              onTransferTargetChange={(v) => setTransferTargets((prev) => ({ ...prev, [ws.id]: v }))}
+              onTransfer={() => handleTransferOwnership(ws.id)}
+              confirming={confirmingDeleteId === ws.id}
+              onAskConfirm={() => setConfirmingDeleteId(ws.id)}
+              onCancelConfirm={() => setConfirmingDeleteId(null)}
+              busy={deletingId === ws.id}
+              onConfirm={() => (isOwner ? handleDeleteWorkspace(ws.id) : handleLeaveWorkspace(ws.id))}
+            />
           );
         })()}
 

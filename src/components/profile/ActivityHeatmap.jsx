@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { MascotNote } from "../common/Mascot";
+import DoodleIcon from "../common/DoodleIcon";
 
 const THAI_MONTHS = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
 const DAY_LABELS = { 1: "จ", 3: "พ", 5: "ศ" }; // rows: 0 = Sunday … 6 = Saturday
@@ -187,8 +188,8 @@ export default function ActivityHeatmap({ data, loading, selectedYear, onSelectY
 
           <div style={S.footer}>
             <div style={S.stats}>
-              <span style={S.pill}>🔥 ต่อเนื่องตอนนี้ <b>{data?.currentStreak ?? 0}</b> วัน</span>
-              <span style={S.pill}>🏆 ต่อเนื่องนานสุด <b>{data?.longestStreak ?? 0}</b> วัน</span>
+              <span style={S.pill}><DoodleIcon name="flame" size={18} style={{ marginRight: 4 }} />ต่อเนื่องตอนนี้ <b>{data?.currentStreak ?? 0}</b> วัน</span>
+              <span style={S.pill}><DoodleIcon name="trophy" size={18} style={{ marginRight: 4 }} />ต่อเนื่องนานสุด <b>{data?.longestStreak ?? 0}</b> วัน</span>
             </div>
             <div style={S.legend} aria-hidden>
               <span>น้อย</span>

@@ -13,6 +13,7 @@ import ActivityHeatmap from "../../components/profile/ActivityHeatmap";
 import MoodCalendar from "../../components/mood/MoodCalendar";
 import { isPopupEnabled, setPopupEnabled } from "../../lib/mood";
 import AvatarCropModal from "../../components/common/AvatarCropModal";
+import DoodleIcon from "../../components/common/DoodleIcon";
 import styles from "./styles";
 
 const PROVIDER_LABEL = {
@@ -282,7 +283,7 @@ export default function ProfilePage() {
                 onClick={() => fileInputRef.current?.click()}
                 disabled={avatarUploading}
               >
-                {avatarUploading ? "…" : "✎"}
+                {avatarUploading ? "…" : <DoodleIcon name="pencil" size={20} style={{ verticalAlign: "middle" }} />}
               </button>
               <input
                 ref={fileInputRef}
@@ -317,12 +318,12 @@ export default function ProfilePage() {
             </button>
 
             <ul style={styles.sideList}>
-              {user?.orgName && <li style={styles.sideItem}>🏫 {user.orgName}</li>}
-              {user?.email && <li style={styles.sideItem}>✉️ {user.email}</li>}
-              {user?.provider && <li style={styles.sideItem}>🔑 {PROVIDER_LABEL[user.provider] || user.provider}</li>}
+              {user?.orgName && <li style={styles.sideItem}><DoodleIcon name="school" size={18} style={{ marginRight: 6 }} />{user.orgName}</li>}
+              {user?.email && <li style={styles.sideItem}><DoodleIcon name="envelope" size={18} style={{ marginRight: 6 }} />{user.email}</li>}
+              {user?.provider && <li style={styles.sideItem}><DoodleIcon name="key" size={18} style={{ marginRight: 6 }} />{PROVIDER_LABEL[user.provider] || user.provider}</li>}
               {activity?.joinedAt && (
                 <li style={styles.sideItem}>
-                  📅 เข้าร่วมเมื่อ{" "}
+                  <DoodleIcon name="calendar" size={18} style={{ marginRight: 6 }} />เข้าร่วมเมื่อ{" "}
                   {new Date(activity.joinedAt).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" })}
                 </li>
               )}
